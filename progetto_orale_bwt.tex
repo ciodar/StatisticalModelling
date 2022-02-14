@@ -1,0 +1,1884 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\makeatletter
+\@ifundefined{AddToHook}{}{\AddToHook{package/xcolor/after}{\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}}}
+\makeatother
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\makeatletter
+\@ifundefined{AddToHook}{}{\AddToHook{package/xcolor/after}{
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+}}
+\makeatother
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage{amsmath}
+
+\title{Progetto FSM - dataset birthwt}
+\author{Dario Cioni}
+\date{11/02/2022}
+
+\newcommand\given[1][]{\:#1\vert\:}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\maketitle
+\cleardoublepage
+
+
+\tableofcontents
+\cleardoublepage
+
+\section{Introduzione}
+L'obiettivo del presente elaborato è studiare i fattori che contribuiscono al basso peso alla nascita nei neonati, 
+analizzando i dati presenti nel dataset birthwt. \\
+Il dataset contiene dati raccolti su 189 bambini nati al Baystate Medical Center, Springfield, Mass nel 1986.
+Le variabili coinvolte sono 10:
+\begin{itemize}
+\item{bwt:} peso alla nascita espresso in grammi
+\item{age:} età della madre
+\item{lwt:} peso della madre (espresso in libbre) alla fine dell'ultimo periodo mestruale
+\item{race:} etnia della madre (1=bianca, 2=nera, 3=altro)
+\item{smoke:} indica se la madre è fumatrice, (1=fumatrice,0 altrimenti)
+\item{ptl:} numero di precedenti parti prematuri
+\item{ht:} indica se esiste una storia di ipertensione (1=presente,0 assente)
+\item{ui:} indica la presenza di irritabilità uterina (1=presente,0 assente)
+\item{ftv:} numero di visite dal ginecologo nel primo trimestre
+\item{low:} variabile dicotomizzata da bwt, indica se il bambino è al di sotto di 2.5 kg
+\end{itemize}
+
+
+
+\section{Analisi esplorativa}
+Le variabili presenti nel dataset possono essere suddivise nel seguente modo
+\begin{itemize}
+\item due variabili a valori continui (bwt,lwt)
+\item tre variabili a valori discreti (age,ptl,ftv)
+\item cinque variabili categoriche (race,smoke,ht,ui,low)
+\end{itemize}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+##    low age lwt  race smoke ptl ht  ui ftv  bwt
+## 85  No  19 182 Black    No   0 No Yes   0 2523
+## 86  No  33 155 Other    No   0 No  No   3 2551
+## 87  No  20 105 White   Yes   0 No  No   1 2557
+## 88  No  21 108 White   Yes   0 No Yes   2 2594
+## 89  No  18 107 White   Yes   0 No Yes   0 2600
+## 91  No  21 124 Other    No   0 No  No   0 2622
+##   low           age             lwt           race    smoke     ptl    
+##  No :130   Min.   :14.00   Min.   : 80.0   White:96   No :115   0:159  
+##  Yes: 59   1st Qu.:19.00   1st Qu.:110.0   Black:26   Yes: 74   1: 24  
+##            Median :23.00   Median :121.0   Other:67             2:  5  
+##            Mean   :23.24   Mean   :129.8                        3:  1  
+##            3rd Qu.:26.00   3rd Qu.:140.0                               
+##            Max.   :45.00   Max.   :250.0                               
+##    ht        ui      ftv          bwt      
+##  No :177   No :161   0:100   Min.   : 709  
+##  Yes: 12   Yes: 28   1: 47   1st Qu.:2414  
+##                      2: 30   Median :2977  
+##                      3:  7   Mean   :2945  
+##                      4:  4   3rd Qu.:3487  
+##                      6:  1   Max.   :4990
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\subsection{Variabili continue}
+Attraverso dei grafici è possibile studiare la composizione del dataset e vedere se è presente una relazione tra le variabili continue la variabile obiettivo bwt.
+Studiamo la distribuzione dei dati mediante degli scatter plot
+
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-4-1} 
+\end{knitrout}
+
+L'età delle madri va da 14 a 45 anni, con mediana di 23 anni.
+Possiamo notare che la distribuzione è spostata verso sinistra. Un modo di normalizzarla è l'utilizzo della radice quadrata dell'età
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{birthwt}\hlopt{$}\hlstd{age} \hlkwb{<-} \hlkwd{sqrt}\hlstd{(birthwt}\hlopt{$}\hlstd{age)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-6-1} 
+\end{knitrout}
+
+Il peso della madre all'ultimo ciclo mestruale va da 80 libbre a 250 libbre (da 36 a 113 kg), con mediana 121 (55 kg).
+\\In questo caso la distribuzione non risulta squilibrata.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-7-1} 
+\end{knitrout}
+
+Gli scatter plot non evidenziano una chiara relazione, lineare o polinomiale, tra le variabili age e lwt e la variabile di uscita bwt, nè una chiara interazione tra age e lwt.
+
+\subsection{Variabili categoriche}
+Le variabili categoriche smoke, ht e ui sono binarie.
+Per smoke è presente un buon numero di campioni, mentre le madri con ipertensione e irritabilità uterina sono presenti in numero più ridotto nel dataset.
+La variabile race possiede tre valori, White, Black e Other. Questa suddivisione è abbastanza grossolana, ed il campioni di madri nere è inferiore alle altre due categorie.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-8-1} 
+\end{knitrout}
+
+Attraverso dei boxplot è possibile studiare se esiste un legame tra queste variabili e la variabile risposta bwt.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-9-1} 
+\end{knitrout}
+
+\begin{itemize}
+\item Le madri madri nere o di altra etnia hanno mediana del peso dei bambini inferiore rispetto alle madri bianche.
+\item Nelle madri fumatrici la mediana di bwt è inferiore
+\item Nel caso in cui sia presente ipertensione o irritabilità uterina si ha una forte diminuzione della mediana di bwt. 
+\end{itemize}
+Queste 4 variabili risultano possibilmente connesse al peso e potranno essere analizzate più a fondo in seguito utilizzando modelli statistici.
+
+\subsection{Variabili discrete}
+Studiando la distribuzione delle variabili discrete ptl ed ftv
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-10-1} 
+\end{knitrout}
+
+Le variabili ptl e ftv mostrano un elevato numero di campioni con il valore pari a zero, mentre pochi campioni all'aumentare del valore della variabile.
+Per sopperire a questo squilibrio, potranno essere dicotomizzate in variabili binarie, dove 0 equivale all'assenza della caratteristica, ed 1 equivale alla presenza della caratteristica in valore maggiore o uguale a 1.
+
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-12-1} 
+\end{knitrout}
+
+Le madri che hanno avuto precedenti parti prematuri, sembrano avere una mediana del peso inferiore: pur avendo pochi dati a disposizione possiamo pensare che esista una relazione tra il numero di parti prematuri della madre e il peso del nascituro.
+Il numero di visite dal ginecologo nel primo trimestre non sembra essere così rilevante, in quanto evidenzia una differenza minima nelle madri che non hanno effettuato visite rispetto alle madri che hanno fatto almeno una visita.
+
+\subsection{Analisi delle correlazioni}
+Il dataset fornito ha un buon numero delle variabili: per capire meglio le relazioni tra le variabili è possibile studiare la correlazione tra queste.
+In questo modo, è possibile
+\begin{itemize}
+\item Verificare se esistono variabili collineari
+\item Individuare possibili interazioni tra variabili
+\item Individuare variabili scorrelate in modo da semplificare la successiva creazione di modelli
+\end{itemize}
+
+Si calcola perciò la correlazione di Pearson ed il $p$-value asintotico tra ogni coppia di variabili 
+Nel grafico sono presenti solamente le correlazioni ritenute significative, con $p$-value inferiore a 0.05. 
+Sono colorate in rosso le correlazioni negative, mentre in blu correlazioni positive tra le coppie di variabili.
+Questa informazione potrà essere utilizzata per creare modelli con interazioni tra le variabili
+
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{corm} \hlkwb{<-} \hlkwd{rcorr}\hlstd{(}\hlkwd{as.matrix}\hlstd{(src),}\hlkwc{type}\hlstd{=}\hlstr{"pearson"}\hlstd{)}
+
+\hlstd{p} \hlkwb{<-} \hlstd{corm}\hlopt{$}\hlstd{P}
+\hlstd{p[}\hlkwd{is.na}\hlstd{(p)]} \hlkwb{<-} \hlnum{0}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-15-1} 
+\end{knitrout}
+
+\begin{itemize}
+\item la variabile low è ovviamente correlata a bwt, in quanto sua dicotomizzazione binaria. Nei successivi studi una delle due dovrà essere sempre esclusa.
+\item Rimuovendo low o bwt, non si evidenziano correlazioni così alte da far pensare a collinearità. Questa ipotesi sarà ulteriormente validata in seguito.
+\item race risulta negativamente correlata a smoke (le madri bianche tendono a fumare più di quelle nere o di altre origini)
+\item lwt risulta positivamente correlata a ht
+\item ptl risulta positivamente correlata a ui 
+\item ftv risulta positivamente correlata a age
+\item ui risulta negativamente correlata a bwt (Le madri con irritabilità uterina tendono ad avere figli che pesano di meno). 
+Questa relazione è particolarmente interessante poichè bwt è la variabile che vogliamo stimare. L'effettiva presenza di una relazione tra le variabili può essere ulteriormente visualizzata effettuando un test di correlazione, simile a quello utilizzato per costruire il grafico
+\end{itemize}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{cor.test}\hlstd{(src}\hlopt{$}\hlstd{bwt, src}\hlopt{$}\hlstd{ui)}
+\end{alltt}
+\begin{verbatim}
+## 
+## 	Pearson's product-moment correlation
+## 
+## data:  src$bwt and src$ui
+## t = -4.0493, df = 187, p-value = 7.518e-05
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.4100408 -0.1471608
+## sample estimates:
+##        cor 
+## -0.2839274
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+La correlazione stimata è di $-0.28$, e poichè il $p$-value è inferiore al livello di significatività 0.05, è possibile rifiutare l'ipotesi nulla di non correlazione.
+
+\subsection{Considerazioni sulle variabili}
+
+\begin{itemize}
+\item La variabile race, oltre a rappresentare una caratterizzazione morfologica e genetica, potrebbe rappresentare un indicatore socio-economico delle madri. Tuttavia, questa suddivisione è grossolana, in quanto non è espressa la composizione della categoria "Other".
+\item La variabile smoke non indica da quanto tempo e con quale regolarità le madri hanno fumato, nè se hanno continuato durante tutto il corso della gravidanza.
+\item Il peso della madre non è direttamente collegabile allo stato di salute della madre (a differenza di indici quali il grado di obesità), ma potrebbe comunque avere una relazione con il peso del figlio.
+\end{itemize}
+
+\section{Modello lineare di regressione}
+Supponiamo di voler prevedere il peso del neonato sulla base del valore delle variabili informative.
+Si utilizzerà come variabile obiettivo bwt, mentre la variabile low verrà esclusa dall'analisi.
+
+\subsection{Modello di regressione semplice}
+Individuiamo un modello di regressione lineare semplice, includendo una sola variabile esplicativa
+
+$$E(\text{bwt} \given \text{X})= \beta_0 + \beta_1 \text{X}$$
+
+Sulla base della correlazione individuata nel capitolo precedente, è possibile verificare se la variabile ui fornisca un buon modello 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mq0} \hlkwb{<-} \hlkwd{lm}\hlstd{(bwt} \hlopt{~} \hlstd{ui,}\hlkwc{data}\hlstd{=birthwt)}
+\hlkwd{summary}\hlstd{(mq0)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = bwt ~ ui, data = birthwt)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1895.7  -535.7    31.3   555.3  1959.3 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  3030.70      55.25  54.852  < 2e-16 ***
+## uiYes        -581.27     143.55  -4.049 7.52e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 701.1 on 187 degrees of freedom
+## Multiple R-squared:  0.08061,	Adjusted R-squared:  0.0757 
+## F-statistic:  16.4 on 1 and 187 DF,  p-value: 7.518e-05
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\subparagraph{Commenti}
+\begin{itemize}
+\item La presenza di irritabilità uterina ha un effetto negativo sul peso del bambino
+\item La variabile ui risulta altamente significativa
+\item La statistica F risulta altamente significativa con $p$-value $7.5 \cdot 10^{-5}$
+\item Gli indici $R^2$ sono molto bassi e l'errore residuo è molto alto: questo modello, molto semplice, potrebbe non essere sufficiente a spiegare il peso dei neonati.
+\end{itemize}
+
+
+
+Ripetendo questa analisi anche per le altre variabili, si trova che
+\begin{itemize}
+\item Le variabili ht, lwt,race e smoke sono significative con $p$-value inferiore a 0.05, mentre age,ptl ed ftv non sono significative
+\item Secondo i modelli stimati, ht, race, smoke hanno un effetto negativo sul peso del neonato. Inoltre, le madri di colore o di altra provenienza hanno un effetto negativo sul peso.
+\item La variabile lwt ha un effetto $\hat{\beta_1} =  4.429 $ positivo
+\item Dicotomizzando la variabile ptl come variabile binaria, questa diventa significativa. Avere avuto precedenti parti prematuri ha un effetto negativo sul peso.
+\item Tutti questi modelli hanno una deviazione standard superiore a quello con la variabile ui ed un indice $R^2$ più basso.
+\end{itemize}
+
+\subsection{Modello di regressione multipla}
+\label{sub:reg_multipla}
+Utilizziamo un modello più complesso, introducendo altre variabili e verificando se porta a miglioramenti.\\
+E' possibile testare il caso estremo del modello completo, nel quale si introducono tutte le variabili esplicative. Le variabili ptl e ftv saranno dicotomizzate in variabili binarie
+
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mq2} \hlkwb{<-} \hlkwd{lm}\hlstd{(bwt} \hlopt{~} \hlstd{age}\hlopt{+} \hlstd{lwt} \hlopt{+} \hlstd{race} \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{ht} \hlopt{+} \hlstd{ui} \hlopt{+} \hlstd{ptl.f} \hlopt{+} \hlstd{ftv.f}
+          \hlstd{,}\hlkwc{data}\hlstd{=birthwt)}
+\hlkwd{summary}\hlstd{(mq2)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = bwt ~ age + lwt + race + smoke + ht + ui + ptl.f + 
+##     ftv.f, data = birthwt)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1874.47  -456.34    58.35   492.57  1687.43 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 3042.999    483.446   6.294 2.31e-09 ***
+## age          -42.687     95.070  -0.449 0.653973    
+## lwt            4.186      1.715   2.441 0.015632 *  
+## raceBlack   -476.904    149.663  -3.187 0.001699 ** 
+## raceOther   -333.792    116.679  -2.861 0.004729 ** 
+## smokeYes    -323.489    108.098  -2.993 0.003157 ** 
+## htYes       -573.498    200.687  -2.858 0.004774 ** 
+## uiYes       -492.885    137.097  -3.595 0.000419 ***
+## ptl.fYes    -201.224    136.318  -1.476 0.141665    
+## ftv.fYes      31.013    100.726   0.308 0.758519    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 646.6 on 179 degrees of freedom
+## Multiple R-squared:  0.2515,	Adjusted R-squared:  0.2138 
+## F-statistic: 6.682 on 9 and 179 DF,  p-value: 3.147e-08
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\subparagraph{Commenti}
+\begin{itemize}
+\item Tutte le variabili tranne lwt (peso della madre) e ftv danno un contributo negativo al peso quando il carattere è presente
+\item Il peso della madre è significativo, essendo inferiore al livello di significatività 0.05
+\item Le variabili smoke,ht e ui risultano significative
+\item A differenza del modello di regressione semplice, la variabile ptl dicotomizzata non è significativa.
+\item Le variabili ftv ed age rimangono non significative
+\item L'errore standard residuo risulta più basso rispetto al modello di regresssione semplice, ma sempre elevato: \\Dato il peso medio dei neonati di 2945 grammi e  un errore residuo di 646.8 grammi, l'errore percentuale è del 21\%. 
+\item Gli indici $R^2$ ed $R^2$ aggiustato sono superiori al modello di regressione semplice, ma non molto alti.
+\item La statistica F del modello è significativa
+\end{itemize}
+
+\subparagraph{Multicollinearità}
+E' possibile controllare ancora una volta l'ipotesi di non collinearità utilizzando il variance inflation factor (VIF). Uno score di 1 indica una assenza di multicollinearità, mentre uno score che si avvicina a 10 indica una forte multicollinearità
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{car}\hlopt{::}\hlkwd{vif}\hlstd{(mq2)}
+\end{alltt}
+\begin{verbatim}
+##           GVIF Df GVIF^(1/(2*Df))
+## age   1.179977  1        1.086267
+## lwt   1.237125  1        1.112261
+## race  1.402355  2        1.088214
+## smoke 1.258567  1        1.121859
+## ht    1.082699  1        1.040528
+## ui    1.072400  1        1.035567
+## ptl.f 1.121868  1        1.059183
+## ftv.f 1.142842  1        1.069038
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+In questo caso tutte le variabili hanno uno score vicino ad 1, quindi non è presente multicollinearità.
+
+\paragraph{Modello ridotto}
+Consideriamo adesso un modello ridotto, nel quale si escludono le variabili non significative
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mq3} \hlkwb{<-} \hlkwd{lm}\hlstd{(bwt} \hlopt{~}  \hlstd{race} \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{ht} \hlopt{+} \hlstd{ui} \hlopt{+} \hlstd{lwt,}\hlkwc{data}\hlstd{=birthwt)}
+\hlkwd{summary}\hlstd{(mq3)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = bwt ~ race + smoke + ht + ui + lwt, data = birthwt)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1842.14  -433.19    67.09   459.21  1631.03 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 2837.264    243.676  11.644  < 2e-16 ***
+## raceBlack   -475.058    145.603  -3.263 0.001318 ** 
+## raceOther   -348.150    112.361  -3.099 0.002254 ** 
+## smokeYes    -356.321    103.444  -3.445 0.000710 ***
+## htYes       -585.193    199.644  -2.931 0.003810 ** 
+## uiYes       -525.524    134.675  -3.902 0.000134 ***
+## lwt            4.242      1.675   2.532 0.012198 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 645.9 on 182 degrees of freedom
+## Multiple R-squared:  0.2404,	Adjusted R-squared:  0.2154 
+## F-statistic:   9.6 on 6 and 182 DF,  p-value: 3.601e-09
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\subparagraph{Commenti}
+\begin{itemize}
+\item Si ha un miglioramento nella significatività di tutte le variabili in base al $p$-value
+\item La statistica F è altamente significativa
+\item L'errore standard e gli indici $R^2$ rimangono simili a quelli del modello completo
+\item Questo modello, notevolmente più semplice, adatta ancora bene i dati
+\end{itemize}
+
+E' possibile escludere anche la variabile lwt, ottenendo un modello ancora più semplice:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mq4} \hlkwb{<-} \hlkwd{lm}\hlstd{(bwt} \hlopt{~}  \hlstd{race} \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{ht} \hlopt{+} \hlstd{ui,}\hlkwc{data}\hlstd{=birthwt)}
+\hlkwd{summary}\hlstd{(mq4)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = bwt ~ race + smoke + ht + ui, data = birthwt)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1828.68  -452.50    46.24   447.24  1577.24 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  3412.76      89.06  38.321  < 2e-16 ***
+## raceBlack    -425.06     146.37  -2.904 0.004139 ** 
+## raceOther    -409.26     111.35  -3.676 0.000312 ***
+## smokeYes     -386.20     104.28  -3.704 0.000281 ***
+## htYes        -472.33     197.46  -2.392 0.017768 *  
+## uiYes        -563.09     135.82  -4.146 5.17e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 655.4 on 183 degrees of freedom
+## Multiple R-squared:  0.2136,	Adjusted R-squared:  0.1922 
+## F-statistic: 9.944 on 5 and 183 DF,  p-value: 1.98e-08
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+E' possibile notare un errore residuo è più alto (655.4), inoltre questo modello ha solamente variabili esplicative categoriche, pur dovendo fare regressione di una quantità continua.
+
+\subparagraph{Test del rapporto di verosimiglianza}
+Per verificare se i modelli ridotti siano modelli annidati, è possibile utilizzare il test del rapporto di verosimiglianza. 
+Per il calcolo è stato utilizzata la funzione lrtest della libreria lmtest.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{lrtest}\hlstd{(mq2,mq3)}
+\end{alltt}
+\begin{verbatim}
+## Likelihood ratio test
+## 
+## Model 1: bwt ~ age + lwt + race + smoke + ht + ui + ptl.f + ftv.f
+## Model 2: bwt ~ race + smoke + ht + ui + lwt
+##   #Df  LogLik Df  Chisq Pr(>Chisq)
+## 1  11 -1486.2                     
+## 2   8 -1487.6 -3 2.7762     0.4274
+\end{verbatim}
+\begin{alltt}
+\hlkwd{lrtest}\hlstd{(mq2,mq4)}
+\end{alltt}
+\begin{verbatim}
+## Likelihood ratio test
+## 
+## Model 1: bwt ~ age + lwt + race + smoke + ht + ui + ptl.f + ftv.f
+## Model 2: bwt ~ race + smoke + ht + ui
+##   #Df  LogLik Df  Chisq Pr(>Chisq)  
+## 1  11 -1486.2                       
+## 2   7 -1490.8 -4 9.3176    0.05363 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Nel modello che comprende la variabile lwt, si ha un  $p$-value di $0.45$, molto al di sopra della soglia di significatività $\alpha = 0.05$, quindi non si ha evidenza contro l'ipotesi nulla di modello annidato.
+Nel secondo modello, invece si ha un $p$-value pari a $0.056$, appena sopra la soglia di significatività.
+Per questo motivo è stato preferito il primo modello, in quanto potrebbe garantire una migliore previsione, evitando una perdita di informazioni significative.
+
+\subparagraph{Analisi dei residui}
+Possiamo analizzare i residui del modello ridotto, in modo da verificare se questi seguono un andamento lineare o mostrano un pattern differente
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-25-1} 
+\end{knitrout}
+
+Il grafico rappresentante l'andamento dei residui mostra una quasi perfetta linearità.
+Questo fa pensare che un modello lineare riesca ad adattare bene i dati 
+\\Se al contrario avessimo visto un diverso andamento, potrebbe essere utile utilizzare un modello nel quale compaiono funzioni delle variabili in modo da ridurre l'errore.
+
+Valutiamo l’ipotesi di distribuzione normale degli errori: allo scopo si può utilizzare
+il qqplot che confronta la distribuzione empirica dei residui con i quantili della
+distribuzione normale.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-26-1} 
+\end{knitrout}
+
+L'andamento dei punti è ben sovrapponibile con la bisettrice del grafico,rappresentante i punti della distribuzione normale, quindi l'ipotesi di distribuzione normale degli errori è confermata.
+
+\subsection{Modelli con interazioni}
+I modelli finora utilizzati non supponevano nessuna interazione tra le variabili.
+E' possibile verificare se modelli con interazioni producano una stima migliore: dato il gran numero di variabili a disposizione, è conveniente sfruttare le informazioni ottenute con l'analisi della correlazione effettuata precedentemente, in modo da analizzare solamente i casi nei quali era stata evidenziata una interazione evidente tra due variabili.
+Non verranno considerate interazioni con più di due variabili.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mq5} \hlkwb{<-} \hlkwd{lm}\hlstd{(bwt} \hlopt{~  +} \hlstd{race} \hlopt{*} \hlstd{smoke} \hlopt{+} \hlstd{ht} \hlopt{+} \hlstd{lwt} \hlopt{+} \hlstd{ui ,}\hlkwc{data}\hlstd{=birthwt)}
+\hlkwd{summary}\hlstd{(mq5)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = bwt ~ +race * smoke + ht + lwt + ui, data = birthwt)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1888.20  -387.43    32.25   417.36  1558.72 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)        2968.440    254.166  11.679  < 2e-16 ***
+## raceBlack          -505.899    189.928  -2.664 0.008432 ** 
+## raceOther          -481.930    135.222  -3.564 0.000468 ***
+## smokeYes           -480.401    134.572  -3.570 0.000458 ***
+## htYes              -540.253    200.523  -2.694 0.007723 ** 
+## lwt                   3.763      1.687   2.231 0.026928 *  
+## uiYes              -548.416    135.774  -4.039 7.93e-05 ***
+## raceBlack:smokeYes   39.295    293.767   0.134 0.893739    
+## raceOther:smokeYes  467.263    247.853   1.885 0.061009 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 643 on 180 degrees of freedom
+## Multiple R-squared:  0.2556,	Adjusted R-squared:  0.2225 
+## F-statistic: 7.724 on 8 and 180 DF,  p-value: 6.967e-09
+\end{verbatim}
+\begin{alltt}
+\hlstd{mq6} \hlkwb{<-} \hlkwd{lm}\hlstd{(bwt} \hlopt{~  +} \hlstd{race} \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{ht} \hlopt{*} \hlstd{lwt} \hlopt{+} \hlstd{ui ,}\hlkwc{data}\hlstd{=birthwt)}
+\hlkwd{summary}\hlstd{(mq6)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = bwt ~ +race + smoke + ht * lwt + ui, data = birthwt)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1841.99  -442.96    61.86   445.58  1612.02 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  2999.144    259.446  11.560  < 2e-16 ***
+## raceBlack    -489.749    145.034  -3.377 0.000898 ***
+## raceOther    -349.621    111.737  -3.129 0.002045 ** 
+## smokeYes     -379.650    103.730  -3.660 0.000331 ***
+## htYes       -1791.370    718.757  -2.492 0.013590 *  
+## lwt             3.080      1.794   1.717 0.087713 .  
+## uiYes        -536.557    134.073  -4.002 9.15e-05 ***
+## htYes:lwt       7.880      4.513   1.746 0.082496 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 642.3 on 181 degrees of freedom
+## Multiple R-squared:  0.253,	Adjusted R-squared:  0.2241 
+## F-statistic: 8.756 on 7 and 181 DF,  p-value: 2.955e-09
+\end{verbatim}
+\begin{alltt}
+\hlstd{mq7} \hlkwb{<-} \hlkwd{lm}\hlstd{(bwt} \hlopt{~  +} \hlstd{race} \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{ht} \hlopt{+} \hlstd{lwt} \hlopt{+} \hlstd{ui} \hlopt{*} \hlstd{ptl.f}
+          \hlstd{,}\hlkwc{data}\hlstd{=birthwt)}
+\hlkwd{summary}\hlstd{(mq7)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = bwt ~ +race + smoke + ht + lwt + ui * ptl.f, data = birthwt)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1803.86  -427.79    37.63   484.40  1610.74 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    2908.306    246.064  11.819  < 2e-16 ***
+## raceBlack      -447.544    146.094  -3.063 0.002525 ** 
+## raceOther      -333.295    112.258  -2.969 0.003395 ** 
+## smokeYes       -327.786    104.969  -3.123 0.002089 ** 
+## htYes          -566.564    199.044  -2.846 0.004935 ** 
+## lwt               3.829      1.685   2.272 0.024265 *  
+## uiYes          -581.198    160.008  -3.632 0.000366 ***
+## ptl.fYes       -290.364    154.295  -1.882 0.061467 .  
+## uiYes:ptl.fYes  324.680    304.480   1.066 0.287698    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 643.2 on 180 degrees of freedom
+## Multiple R-squared:  0.2551,	Adjusted R-squared:  0.222 
+## F-statistic: 7.707 on 8 and 180 DF,  p-value: 7.294e-09
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\paragraph{Commenti}
+\begin{itemize}
+\item I modelli hanno una stima della deviazione standard inferiore rispetto al modello senza interazioni e indice $R^2$ migliore, tuttavia la differenza è minima.
+\item In entrambi i casi le interazioni non sono risultate significative, e anche le variabili che compongono le interazioni non risultano più significative
+\end{itemize}
+
+Per questi motivi è stato preferito il modello di regressione lineare che non considera interazioni, in quanto pur essendo più semplice riesce ad adattare bene i dati.
+
+\section{Modello di regressione logistica}
+\label{sec:logistica}
+
+Invece di effettuare una regressione sul peso del bambino bwt, supponiamo di voler solamente predire se il bambino sarà sottopeso (peso inferiore a 2500 grammi), ovvero calcolare il valore atteso
+$$E(\text{low}_i | \{X_i = x_i\}) = \pi_i$$
+Per fare questo, si può utilizzare un modello di regressione logistica.
+Studiamo innanzitutto dei modelli nei quali compare una singola variabile
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{fit1} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{race,} \hlkwc{family} \hlstd{= binomial,} \hlkwc{data} \hlstd{= birthwt)}
+\hlkwd{summary}\hlstd{(fit1)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ race, family = binomial, data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.0489  -0.9665  -0.7401   1.4042   1.6905  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)  -1.1550     0.2391  -4.830 1.36e-06 ***
+## raceBlack     0.8448     0.4634   1.823   0.0683 .  
+## raceOther     0.6362     0.3478   1.829   0.0674 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 229.66  on 186  degrees of freedom
+## AIC: 235.66
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+\begin{alltt}
+\hlstd{fit2} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{ht,} \hlkwc{family} \hlstd{= binomial,} \hlkwc{data} \hlstd{= birthwt)}
+\hlkwd{summary}\hlstd{(fit2)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ ht, family = binomial, data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.3232  -0.8341  -0.8341   1.5652   1.5652  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)  -0.8771     0.1650  -5.315 1.07e-07 ***
+## htYes         1.2135     0.6083   1.995   0.0461 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 230.65  on 187  degrees of freedom
+## AIC: 234.65
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+\begin{alltt}
+\hlstd{fit3} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{smoke,} \hlkwc{family} \hlstd{= binomial,} \hlkwc{data} \hlstd{= birthwt)}
+\hlkwd{summary}\hlstd{(fit3)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ smoke, family = binomial, data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.0197  -0.7623  -0.7623   1.3438   1.6599  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)  -1.0871     0.2147  -5.062 4.14e-07 ***
+## smokeYes      0.7041     0.3196   2.203   0.0276 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 229.80  on 187  degrees of freedom
+## AIC: 233.8
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+\begin{alltt}
+\hlstd{fit4} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{ui,} \hlkwc{family} \hlstd{= binomial,} \hlkwc{data} \hlstd{= birthwt)}
+\hlkwd{summary}\hlstd{(fit4)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ ui, family = binomial, data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.1774  -0.8097  -0.8097   1.1774   1.5967  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)  -0.9469     0.1756  -5.392 6.97e-08 ***
+## uiYes         0.9469     0.4168   2.272   0.0231 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 229.60  on 187  degrees of freedom
+## AIC: 233.6
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+\begin{alltt}
+\hlstd{fit5} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{lwt,} \hlkwc{family} \hlstd{= binomial,} \hlkwc{data} \hlstd{= birthwt)}
+\hlkwd{summary}\hlstd{(fit5)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ lwt, family = binomial, data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.0951  -0.9022  -0.8018   1.3609   1.9821  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)  
+## (Intercept)  0.99831    0.78529   1.271   0.2036  
+## lwt         -0.01406    0.00617  -2.279   0.0227 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 228.69  on 187  degrees of freedom
+## AIC: 232.69
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+\begin{alltt}
+\hlstd{fit6} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{ptl.f,} \hlkwc{family} \hlstd{= binomial,} \hlkwc{data} \hlstd{= birthwt)}
+\hlkwd{summary}\hlstd{(fit6)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ ptl.f, family = binomial, data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.3537  -0.7723  -0.7723   1.0108   1.6464  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)  -1.0571     0.1813  -5.831  5.5e-09 ***
+## ptl.fYes      1.4626     0.4144   3.529 0.000417 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 221.90  on 187  degrees of freedom
+## AIC: 225.9
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+\begin{alltt}
+\hlkwd{confint}\hlstd{(fit6)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Waiting for profiling to be done...}}\begin{verbatim}
+##                  2.5 %     97.5 %
+## (Intercept) -1.4236700 -0.7110199
+## ptl.fYes     0.6607048  2.2975845
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\paragraph{Commenti}
+\begin{itemize}
+\item Per tutte le variabili binarie e categoriche l'intercetta è negativa, mentre le variabili hanno effetto positivo, ovvero tendono a far aumentare la probabilità che la madre abbia un bambino sottopeso.
+\item La variabile lwt (peso della madre) ha un effetto negativo: all'aumentare del peso della madre, la probabilità di avere un bambino sottopeso diminuisce. Questa variabile ha una sufficiente significatività.
+\item La variabile race non è molto significativa, con $p$-value 0.067, maggiore della soglia di significatività 0.05. Anche le variabili age e ftv, non riportate, non sono risultate significative.
+\item Le variabili ht,smoke e ui risultano significative
+\item La variabile ptl risulta molto significativa. In questo caso, è stata utilizzata la variabile dicotomizzata come variabile binaria: 
+Potrebbe esserci una relazione tra le madri che hanno avuto parti prematuri e la probabilità di avere bambini sottopeso.
+\end{itemize}
+
+Possiamo inoltre calcolare un indice pseudo $R^2$ per il modello con la variabile ptl
+$$\text{pseudo} - R^2 = 1 - \frac{\text{deviance}}{\text{null.deviance}}$$
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{pseudoRfit6} \hlkwb{<-} \hlstd{((fit6}\hlopt{$}\hlstd{null.deviance}\hlopt{/-}\hlnum{2}\hlstd{)} \hlopt{-} \hlstd{(fit6}\hlopt{$}\hlstd{deviance} \hlopt{/-}\hlnum{2}\hlstd{))} \hlopt{/} \hlstd{(fit6}\hlopt{$}\hlstd{null.deviance}\hlopt{/-}\hlnum{2}\hlstd{)}
+\hlstd{pseudoRfit6}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.05443445
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+Questo indice risulta molto basso.  \\E' possibile provare modelli con un maggior numero di variabili per verificare se producono risultati migliori
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ ht + ptl.f + lwt + ui + smoke + race + age + 
+##     ftv.f, family = binomial, data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.6723  -0.8077  -0.5146   0.9498   2.1783  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(>|z|)   
+## (Intercept)  1.411346   1.894722   0.745  0.45634   
+## htYes        1.826891   0.705423   2.590  0.00960 **
+## ptl.fYes     1.233034   0.465573   2.648  0.00809 **
+## lwt         -0.014936   0.007051  -2.118  0.03414 * 
+## uiYes        0.705020   0.464322   1.518  0.12892   
+## smokeYes     0.815467   0.420198   1.941  0.05230 . 
+## raceBlack    1.203890   0.534233   2.253  0.02423 * 
+## raceOther    0.775619   0.459366   1.688  0.09132 . 
+## age         -0.326252   0.371046  -0.879  0.37925   
+## ftv.fYes    -0.125163   0.375513  -0.333  0.73890   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 196.81  on 179  degrees of freedom
+## AIC: 216.81
+## 
+## Number of Fisher Scoring iterations: 4
+## [1] 0.1613434
+## 
+## Call:
+## glm(formula = low ~ ht + ptl.f + lwt + smoke + race, family = binomial, 
+##     data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.8188  -0.8035  -0.5457   0.9667   2.1530  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)   
+## (Intercept)  0.09462    0.95704   0.099  0.92124   
+## htYes        1.76744    0.70841   2.495  0.01260 * 
+## ptl.fYes     1.23144    0.44625   2.760  0.00579 **
+## lwt         -0.01673    0.00695  -2.407  0.01608 * 
+## smokeYes     0.87611    0.40071   2.186  0.02879 * 
+## raceBlack    1.26372    0.52933   2.387  0.01697 * 
+## raceOther    0.86418    0.43509   1.986  0.04701 * 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 200.48  on 182  degrees of freedom
+## AIC: 214.48
+## 
+## Number of Fisher Scoring iterations: 4
+## 
+## Call:
+## glm(formula = low ~ ht + ptl.f + lwt, family = binomial, data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.7420  -0.8018  -0.6895   0.9647   2.2460  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(>|z|)   
+## (Intercept)  1.017367   0.853337   1.192  0.23317   
+## htYes        1.893971   0.721090   2.627  0.00863 **
+## ptl.fYes     1.406770   0.428501   3.283  0.00103 **
+## lwt         -0.017280   0.006787  -2.546  0.01090 * 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 210.12  on 185  degrees of freedom
+## AIC: 218.12
+## 
+## Number of Fisher Scoring iterations: 4
+## 
+## Call:
+## glm(formula = low ~ ht + ptl.f, family = binomial, data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.3230  -0.7398  -0.7398   1.0385   1.6909  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)  -1.1560     0.1911  -6.048 1.47e-09 ***
+## htYes         1.2879     0.6269   2.054 0.039940 *  
+## ptl.fYes      1.4919     0.4193   3.558 0.000373 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 217.66  on 186  degrees of freedom
+## AIC: 223.66
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\paragraph{Commenti}
+\begin{itemize}
+\item Nel modello completo le variabili ui, age , ftv, race e smoke non sono significative. L'indice pseudo-$R^2$ è rimasto relativamente basso
+\item Togliendo le variabili ui, age e ftv tutte le restanti variabili diventano significative. L'effetto delle variabili mantiene lo stesso segno trovato in precedenza.
+\item Escludendo le variabili meno significative, sono stati trovati modelli sempre più ridotti, nei quali tutte le variabili hanno una ottima significatività.
+\end{itemize}
+
+Per aiutare a capire se i modelli ridotti siano utilizzabili, si possono nuovamente effettuare dei test di rapporto di verosimiglianza
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{lrtest}\hlstd{(fit7,fit8,fit9,fit10,fit6)}
+\end{alltt}
+\begin{verbatim}
+## Likelihood ratio test
+## 
+## Model 1: low ~ ht + ptl.f + lwt + ui + smoke + race + age + ftv.f
+## Model 2: low ~ ht + ptl.f + lwt + smoke + race
+## Model 3: low ~ ht + ptl.f + lwt
+## Model 4: low ~ ht + ptl.f
+## Model 5: low ~ ptl.f
+##   #Df   LogLik Df  Chisq Pr(>Chisq)   
+## 1  10  -98.405                        
+## 2   7 -100.241 -3 3.6730   0.299003   
+## 3   4 -105.062 -3 9.6411   0.021876 * 
+## 4   3 -108.831 -1 7.5386   0.006039 **
+## 5   2 -110.949 -1 4.2358   0.039579 * 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\begin{itemize}
+\item Il test del rapporto di verosimiglianza tra il modello completo e quello che esclude le variabili ui,age e ftv non fornisce evidenza contro il modello ridotto.
+\item Togliendo ulteriori variabili il test porterebbe a rifiutare i modelli ridotti
+\item Questa scelta dovrà essere approfondita e validata utilizzando algoritmi stepwise e attraverso modelli grafici
+\end{itemize}
+
+Calcoliamo l'indice pseudo-$R^2$ per i modelli ridotti $\text{low} \sim \text{ht + ptl.f + lwt}$
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{pseudoRfit9} \hlkwb{<-} \hlstd{((fit9}\hlopt{$}\hlstd{null.deviance}\hlopt{/-}\hlnum{2}\hlstd{)} \hlopt{-} \hlstd{(fit9}\hlopt{$}\hlstd{deviance} \hlopt{/-}\hlnum{2}\hlstd{))} \hlopt{/} \hlstd{(fit9}\hlopt{$}\hlstd{null.deviance}\hlopt{/-}\hlnum{2}\hlstd{)}
+\hlstd{pseudoRfit9}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.1046082
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+e $\text{low} \sim \text{ht + ptl + lwt + smoke + race}$
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{pseudoRfit8} \hlkwb{<-} \hlstd{((fit8}\hlopt{$}\hlstd{null.deviance}\hlopt{/-}\hlnum{2}\hlstd{)} \hlopt{-} \hlstd{(fit8}\hlopt{$}\hlstd{deviance} \hlopt{/-}\hlnum{2}\hlstd{))} \hlopt{/} \hlstd{(fit8}\hlopt{$}\hlstd{null.deviance}\hlopt{/-}\hlnum{2}\hlstd{)}
+\hlstd{pseudoRfit8}
+\end{alltt}
+\begin{verbatim}
+## [1] 0.1456916
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Pur rimanendo abbastanza basso, l'indice è notevolmente migliore rispetto al modello di regressione logistica con la sola variabile ptl, e più alto rispetto al modello $\text{low} \sim \text{ht + ptl.f + lwt}$
+Possiamo valutare un intervallo di confidenza dei parametri
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{confint}\hlstd{(fit8)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Waiting for profiling to be done...}}\begin{verbatim}
+##                   2.5 %       97.5 %
+## (Intercept) -1.73046202  2.037044326
+## htYes        0.41461419  3.246747983
+## ptl.fYes     0.36517972  2.126748119
+## lwt         -0.03123596 -0.003854403
+## smokeYes     0.10090714  1.681646805
+## raceBlack    0.22732716  2.319514275
+## raceOther    0.02399401  1.739913400
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Tutte le variabili hanno un intervallo di confidenza che non include lo zero.
+
+\paragraph{Stima della probabilità}
+Possiamo stimare la probabilità $\hat{\pi}_i$ di una madre di avere un figlio sottopeso:
+Prima vediamo la probabilità per una madre bianca che non ha avuto parti prematuri, senza familiarità di ipertensione,  e con un peso vicino alla media (60 kg)
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{stima1} \hlkwb{<-} \hlkwd{exp}\hlstd{(}\hlkwd{coef}\hlstd{(fit8)}\hlopt{%*%}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{132.3}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{))}\hlopt{/}
+  \hlstd{(}\hlnum{1}\hlopt{+}\hlkwd{exp}\hlstd{(}\hlkwd{coef}\hlstd{(fit8)}\hlopt{%*%}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{132.3}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{)))}
+\hlstd{stima1}
+\end{alltt}
+\begin{verbatim}
+##           [,1]
+## [1,] 0.1073036
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Vediamo adesso la stima per una madre di colore, che ha avuto parti prematuri, con una familiarità di ipertensione e peso vicino alla media (60 kg)
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{stima2} \hlkwb{<-} \hlkwd{exp}\hlstd{(}\hlkwd{coef}\hlstd{(fit8)}\hlopt{%*%}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{132.3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{))}\hlopt{/}
+  \hlstd{(}\hlnum{1}\hlopt{+}\hlkwd{exp}\hlstd{(}\hlkwd{coef}\hlstd{(fit8)}\hlopt{%*%}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{132.3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{)))}
+\hlstd{stima2}
+\end{alltt}
+\begin{verbatim}
+##           [,1]
+## [1,] 0.9534751
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+La probabilità nel secondo caso è del 95\%.
+\paragraph{Odds} Possiamo calcolare una stima degli odds nel secondo caso
+$$\text{odds} = \frac{\pi}{1-\pi} = \frac{0.953}{0.047}=20,28$$
+
+E' possibile vedere l'andamento del logaritmo degli odds all'aumentare del peso della madre
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{coeff} \hlkwb{<-} \hlstd{fit8}\hlopt{$}\hlstd{coefficients}
+\hlstd{Lodds} \hlkwb{<-} \hlstd{coeff[}\hlnum{1}\hlstd{]} \hlopt{+} \hlstd{coeff[}\hlnum{2}\hlstd{]}\hlopt{*}\hlstd{src}\hlopt{$}\hlstd{ht} \hlopt{+} \hlstd{coeff[}\hlnum{3}\hlstd{]}\hlopt{*}\hlstd{ptl.c} \hlopt{+} \hlstd{coeff[}\hlnum{4}\hlstd{]}\hlopt{*}\hlstd{src}\hlopt{$}\hlstd{lwt} \hlopt{+} \hlstd{coeff[}\hlnum{5}\hlstd{]}\hlopt{*}\hlstd{src}\hlopt{$}\hlstd{smoke} \hlopt{+} \hlstd{coeff[}\hlnum{6}\hlstd{]}\hlopt{*}\hlstd{src}\hlopt{$}\hlstd{race}
+
+\hlkwd{plot}\hlstd{(src}\hlopt{$}\hlstd{lwt,Lodds,}\hlkwc{xlab}\hlstd{=}\hlstr{"mother weight(pounds)"}\hlstd{,}\hlkwc{main}\hlstd{=}\hlstr{"Log odds by mother weight"}\hlstd{)}
+\hlkwd{abline}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-37-1} 
+\end{knitrout}
+
+Pur notando un andamento decrescente, i punti risultano molto sparsi. Si nota anche che il numero di campioni diminuisce all'aumentare del peso, cosa che rende più difficile verificare la relazione tra gli odds e il peso della madre
+
+\subsection{Modelli con interazioni}
+
+Verifichiamo se sono presenti interazioni tra le variabili, utilizzando le variabili migliori individuate precedentemente.
+La correlazione studiata in precedenza non ha individuato tuttavia forti legami tra le variabili
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{fit11} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{ht} \hlopt{+} \hlstd{ptl.f} \hlopt{+} \hlstd{lwt} \hlopt{+} \hlstd{smoke} \hlopt{*} \hlstd{race}
+             \hlstd{,} \hlkwc{family} \hlstd{= binomial}
+             \hlstd{,} \hlkwc{data} \hlstd{= birthwt)}
+\hlkwd{summary}\hlstd{(fit11)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ ht + ptl.f + lwt + smoke * race, family = binomial, 
+##     data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.9131  -0.8316  -0.4734   0.9316   2.2737  
+## 
+## Coefficients:
+##                     Estimate Std. Error z value Pr(>|z|)   
+## (Intercept)        -0.260784   1.066427  -0.245  0.80681   
+## htYes               1.705723   0.720469   2.368  0.01791 * 
+## ptl.fYes            1.247869   0.450046   2.773  0.00556 **
+## lwt                -0.016273   0.007115  -2.287  0.02219 * 
+## smokeYes            1.285878   0.623711   2.062  0.03924 * 
+## raceBlack           1.423816   0.785230   1.813  0.06979 . 
+## raceOther           1.313087   0.620635   2.116  0.03437 * 
+## smokeYes:raceBlack -0.072691   1.097794  -0.066  0.94721   
+## smokeYes:raceOther -1.179176   0.929137  -1.269  0.20440   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 198.64  on 180  degrees of freedom
+## AIC: 216.64
+## 
+## Number of Fisher Scoring iterations: 5
+\end{verbatim}
+\begin{alltt}
+\hlstd{fit12} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{ht} \hlopt{*} \hlstd{lwt} \hlopt{+} \hlstd{ptl.f}  \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{race}
+             \hlstd{,} \hlkwc{family} \hlstd{= binomial}
+             \hlstd{,} \hlkwc{data} \hlstd{= birthwt)}
+\hlkwd{summary}\hlstd{(fit12)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ ht * lwt + ptl.f + smoke + race, family = binomial, 
+##     data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.8197  -0.7907  -0.5443   0.9525   2.1519  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(>|z|)   
+## (Intercept)  0.048737   1.048168   0.046   0.9629   
+## htYes        2.038451   2.670620   0.763   0.4453   
+## lwt         -0.016378   0.007673  -2.134   0.0328 * 
+## ptl.fYes     1.229462   0.446557   2.753   0.0059 **
+## smokeYes     0.881596   0.403808   2.183   0.0290 * 
+## raceBlack    1.265805   0.529435   2.391   0.0168 * 
+## raceOther    0.865844   0.435183   1.990   0.0466 * 
+## htYes:lwt   -0.001788   0.016979  -0.105   0.9161   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 200.47  on 181  degrees of freedom
+## AIC: 216.47
+## 
+## Number of Fisher Scoring iterations: 4
+\end{verbatim}
+\begin{alltt}
+\hlstd{fit13} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{ht} \hlopt{+} \hlstd{lwt} \hlopt{+} \hlstd{ptl.f} \hlopt{+} \hlstd{age} \hlopt{*} \hlstd{ftv.c}
+             \hlstd{,} \hlkwc{family} \hlstd{= binomial}
+             \hlstd{,} \hlkwc{data} \hlstd{= birthwt)}
+\hlkwd{summary}\hlstd{(fit13)}
+\end{alltt}
+\begin{verbatim}
+## 
+## Call:
+## glm(formula = low ~ ht + lwt + ptl.f + age * ftv.c, family = binomial, 
+##     data = birthwt)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.7528  -0.7782  -0.5893   0.8921   2.3602  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -0.96341    2.13666  -0.451 0.652065    
+## htYes        1.81523    0.73274   2.477 0.013238 *  
+## lwt         -0.01823    0.00729  -2.500 0.012407 *  
+## ptl.fYes     1.60258    0.45686   3.508 0.000452 ***
+## age          0.46338    0.45907   1.009 0.312787    
+## ftv.c        5.96442    2.03407   2.932 0.003365 ** 
+## age:ftv.c   -1.28249    0.44033  -2.913 0.003585 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 234.67  on 188  degrees of freedom
+## Residual deviance: 196.30  on 182  degrees of freedom
+## AIC: 210.3
+## 
+## Number of Fisher Scoring iterations: 5
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+L'unica interazione che è stata provata come significativa è quella tra età e numero di visite effettuate dal ginecologo nel primo trimestre (ftv). 
+Tuttavia, possiamo vedere come l'età da sola non sia una variabile significativa, inoltre le variabili age e ftv erano state scartate nelle precedenti analisi.
+Come nella regressione lineare, la scelta è orientata verso il modello privo di interazioni.
+
+\section{Selezione del modello}
+
+Per confermare quanto ottenuto effettuando una selezione informata dei modelli, si possono utilizzare degli algoritmi stepwise sfruttando diversi criteri di selezione del modello.
+Saranno impiegati i criteri di selezione AIC (\emph{Akaike's information criterion}) e BIC (\emph{Bayesian information criterion}),e sarà effettuata una ricerca del modello in avanti (\emph{forward}) partendo dal modello nullo con la sola intercetta, all'indietro (\emph{backward}) partendo dal modello completo e mista (\emph{both}), partendo dal modello nullo ma con possibilità di rimuovere variabili aggiunte durante le iterazioni.
+
+\subsection{Modelli di regressione lineare}
+Troviamo un modello di regressione della variabile bwt, utilizzando le variabili ptl e ftv come ordinali, age e lwt come interi ed escludendo dal dataset la variabile low
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{reg.data} \hlkwb{=} \hlstd{birthwt[}\hlkwd{c}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{4}\hlstd{,}\hlnum{5}\hlstd{,}\hlnum{6}\hlstd{,}\hlnum{7}\hlstd{,}\hlnum{8}\hlstd{,}\hlnum{9}\hlstd{,}\hlnum{10}\hlstd{)]}
+\hlstd{mq0} \hlkwb{<-} \hlkwd{lm}\hlstd{(bwt} \hlopt{~} \hlnum{1}\hlstd{,}\hlkwc{data}\hlstd{=reg.data)}
+\hlstd{mq.sat} \hlkwb{<-} \hlkwd{lm} \hlstd{(bwt} \hlopt{~}\hlstd{age}\hlopt{+}\hlstd{lwt}\hlopt{+}\hlstd{race}\hlopt{+}\hlstd{smoke}\hlopt{+}\hlstd{ptl}\hlopt{+}\hlstd{ht}\hlopt{+}\hlstd{ui}\hlopt{+}\hlstd{ftv,}\hlkwc{data}\hlstd{=reg.data)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\subsubsection{Metodo Forward}
+
+Partendo dal modello nullo con la sola intercetta, effettuiamo una procedura stepwise per la selezione del modello.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{forw_aic} \hlkwb{<-} \hlkwd{step}\hlstd{(mq0,}\hlkwc{scope} \hlstd{=} \hlkwd{formula}\hlstd{(mq.sat)}
+                 \hlstd{,} \hlkwc{direction}\hlstd{=}\hlstr{"forward"}\hlstd{,} \hlkwc{k}\hlstd{=}\hlnum{2}\hlstd{)}
+
+\hlstd{forw_bic} \hlkwb{<-} \hlkwd{step}\hlstd{(mq0,}\hlkwc{scope} \hlstd{=} \hlkwd{formula}\hlstd{(mq.sat)}
+                 \hlstd{,} \hlkwc{direction}\hlstd{=}\hlstr{"forward"}\hlstd{,} \hlkwc{k}\hlstd{=}\hlkwd{log}\hlstd{(}\hlkwd{length}\hlstd{(reg.data}\hlopt{$}\hlstd{bwt)))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+Il metodo AIC termina con il modello 
+$$\text{bwt} \sim \text{ui + race + smoke + ht + lwt + ptl}$$
+
+Il modello BIC termina con il modello 
+$$\text{bwt} \sim \text{ui + race + smoke + ht + lwt}$$
+Questo secondo modello è lo stesso che era stato scelto durante l'analisi in \ref{sub:reg_multipla},
+fornendo ulteriore conferma della bontà del modello scelto.\\
+Il modello selezionato con criterio AIC e quello selezionato con criterio BIC differiscono per la variabile ptl, non selezionata secondo il criterio BIC, solitamente più parsimonioso.
+\\Effettuando una ricerca mista che permette la rimozione di variabili, si trovano gli stessi modelli
+
+\subsubsection{Metodo Backward}
+
+Partendo dal modello saturo, si effettua una procedura stepwise per la selezione del modello.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{back_aic} \hlkwb{<-} \hlkwd{step}\hlstd{(mq.sat,}\hlkwc{scope} \hlstd{=} \hlkwd{formula}\hlstd{(mq.sat)}
+                 \hlstd{,} \hlkwc{direction}\hlstd{=}\hlstr{"backward"}\hlstd{,} \hlkwc{k}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{trace}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlstd{back_bic} \hlkwb{<-} \hlkwd{step}\hlstd{(mq.sat,}\hlkwc{scope} \hlstd{=} \hlkwd{formula}\hlstd{(mq.sat)}
+                 \hlstd{,} \hlkwc{direction}\hlstd{=}\hlstr{"backward"}\hlstd{,} \hlkwc{k}\hlstd{=}\hlkwd{log}\hlstd{(}\hlkwd{length}\hlstd{(reg.data}\hlopt{$}\hlstd{bwt)),} \hlkwc{trace}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+In entrambi i casi, vengono trovati gli stessi modelli individuati dal metodo Forward.
+
+
+\subsection{Modelli di regressione logistica}
+Troviamo adesso un modello di regressione logistica per la variabile low, utilizzando le stesse variabili utilizzate nella sezione precedente ed escludendo dal dataset la variabile bwt.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{class.data} \hlkwb{=} \hlstd{birthwt[}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{4}\hlstd{,}\hlnum{5}\hlstd{,}\hlnum{6}\hlstd{,}\hlnum{7}\hlstd{,}\hlnum{8}\hlstd{,}\hlnum{9}\hlstd{)]}
+
+\hlstd{cq0} \hlkwb{<-} \hlkwd{glm}\hlstd{(}\hlkwd{unclass}\hlstd{(low)} \hlopt{~} \hlnum{1}
+           \hlstd{,}\hlkwc{data}\hlstd{=class.data)}
+\hlstd{cq.sat} \hlkwb{<-} \hlkwd{glm} \hlstd{(}\hlkwd{unclass}\hlstd{(low)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{lwt}\hlopt{+}\hlstd{race}\hlopt{+}\hlstd{smoke}\hlopt{+}\hlstd{ptl.f}\hlopt{+}\hlstd{ht}\hlopt{+}\hlstd{ui}\hlopt{+}\hlstd{ftv}
+               \hlstd{,}\hlkwc{data}\hlstd{=class.data)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\subsubsection{Metodo Forward}
+Partendo dal modello con la sola intercetta, si effettua una procedura stepwise in avanti
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{class_forw_aic} \hlkwb{<-} \hlkwd{step}\hlstd{(cq0,}\hlkwc{scope} \hlstd{=} \hlkwd{formula}\hlstd{(cq.sat)}
+                       \hlstd{,} \hlkwc{direction}\hlstd{=}\hlstr{"forward"}\hlstd{,} \hlkwc{k}\hlstd{=}\hlnum{2}\hlstd{)}
+\hlstd{class_forw_bic} \hlkwb{<-} \hlkwd{step}\hlstd{(cq0,}\hlkwc{scope} \hlstd{=} \hlkwd{formula}\hlstd{(cq.sat)}
+                       \hlstd{,} \hlkwc{direction}\hlstd{=}\hlstr{"forward"}\hlstd{,} \hlkwc{k}\hlstd{=}\hlkwd{log}\hlstd{(}\hlkwd{length}\hlstd{(class.data}\hlopt{$}\hlstd{low)))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Il criterio AIC termina con il modello 
+$$\text{low} \sim \text{ptl.f + ht + lwt + ui + race + smoke}$$
+
+Questo modello è molto simile a quello scelto in \ref{sec:logistica}, tuttavia in questo caso viene inclusa anche la variabile ui che era invece stata scartata durante l'analisi.
+
+Mentre il criterio BIC termina con il modello
+$$\text{low} \sim \text{ptl.f}$$
+In \ref{sec:logistica} era stato notato che la variabile ptl fosse particolarmente significativa.
+Tuttavia, era anche dimostrato che un modello con quest'unica variabile binaria avesse un basso indice pseudo-$R^2$,e che non fosse un modello annidato rispetto al modello completo.
+
+\subsubsection{Metodo backward}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{class_back_aic} \hlkwb{<-} \hlkwd{step}\hlstd{(cq.sat,}\hlkwc{scope} \hlstd{=} \hlkwd{formula}\hlstd{(cq.sat)}
+                       \hlstd{,} \hlkwc{direction}\hlstd{=}\hlstr{"backward"}\hlstd{,} \hlkwc{k}\hlstd{=}\hlnum{2}\hlstd{)}
+\hlstd{class_back_bic} \hlkwb{<-} \hlkwd{step}\hlstd{(cq.sat,}\hlkwc{scope} \hlstd{=} \hlkwd{formula}\hlstd{(cq.sat)}
+                       \hlstd{,} \hlkwc{direction}\hlstd{=}\hlstr{"backward"}\hlstd{,} \hlkwc{k}\hlstd{=}\hlkwd{log}\hlstd{(}\hlkwd{length}\hlstd{(reg.data}\hlopt{$}\hlstd{bwt)))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Il criterio AIC termina con lo stesso modello visto nella direzione forward.\\
+Il criterio BIC termina invece con un modello diverso:
+$$\text{low} \sim \text{lwt + ptl.f + ht}$$
+Viene riproposto un modello già trovato in \ref{sec:logistica}. Anche questo modello non era risultato annidato per il test del rapporto di verosimiglianza, ed era stato preferito un modello più complesso.
+
+
+
+\section{Modelli grafici}
+
+Utilizzando i modelli grafici è possibile valutare l'indipendenza condizionata tra le variabili e fornire una rappresentazione efficace del modello statistico.
+I modelli grafici verranno utilizzati per trovare le dipendenze tra la variabile low (bambino sottopeso) e le restanti variabili.
+Per fare questo verranno utilizzati modelli grafici per variabili categoriche.
+
+\subsection{Undirected Graphs}
+
+Per trovare le relazioni di indipendenza condizionata tra le variabili (categoriche) e la variabile obiettivo low, sono state sfruttate le seguenti variabili dicotomizzate
+\begin{itemize}
+\item{age}, dicotomizzata in Young (Età compresa tra 14 e 23 anni), Adult (Età compresa tra 24 e 35 anni) e Over 35.
+\item {ptl}, dicotomizzata in Yes (La madre ha avuto precedenti parti prematuri) e No altrimenti.
+\item {ftv}, dicotomizzata in Yes (La madre ha effettuato visite ginecologiche nel primo trimestre) e No altrimenti
+\end{itemize}
+La scelta di dicotomizzare ptl e ftv come variabili binarie e non come variabili ordinali si è rivelata utile alla stabilità del metodo, poichè senza questa dicotomizzazione,i modelli trovati mostravano una completa indipendenza tra le variabili esplicative e la variabile low.
+Era stato notato in precedenza come la variabile ptl fosse maggiormente significativa se dicotomizzata in variabile binaria.
+
+Non effettuando ipotesi a priori sulla struttura del grafo, è possibile far apprendere la struttura del grafo dai dati attraverso una procedura iterativa.
+E' possibile sfruttare i criteri AIC e BIC visti precedentemente per la penalizzazione della verosimiglianza.\\
+Il modello calcolato con BIC è il seguente
+
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-48-1} 
+\end{knitrout}
+
+Questo modello mostra una completa indipendenza delle variabili ftv, age, lwt e ht.
+E' possibile verificare l'ipotesi di indipendenza marginale di tutte le variabili dalla variabile obiettivo,low attraverso dei test di ipotesi
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{ht)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ ht 
+## Statistic (DEV):    4.022 df: 1 p-value: 0.0449 method: CHISQ
+\end{verbatim}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{age.f)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ age.f 
+## Statistic (DEV):    3.805 df: 2 p-value: 0.1492 method: CHISQ
+\end{verbatim}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{lwt.f)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ lwt.f 
+## Statistic (DEV):    2.508 df: 1 p-value: 0.1133 method: CHISQ
+\end{verbatim}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{ftv)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ ftv 
+## Statistic (DEV):    6.186 df: 5 p-value: 0.2886 method: CHISQ
+\end{verbatim}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{race)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ race 
+## Statistic (DEV):    5.010 df: 2 p-value: 0.0817 method: CHISQ
+\end{verbatim}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{ui)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ ui 
+## Statistic (DEV):    5.076 df: 1 p-value: 0.0243 method: CHISQ
+\end{verbatim}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{ptl.f)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ ptl.f 
+## Statistic (DEV):   12.774 df: 1 p-value: 0.0004 method: CHISQ
+\end{verbatim}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{smoke)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ smoke 
+## Statistic (DEV):    4.867 df: 1 p-value: 0.0274 method: CHISQ
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\begin{itemize}
+\item I test di indipendenza condizionale non forniscono evidenza contro l'ipotesi nulla di indipendenza marginale di race, age, lwt e ftv da low. Possiamo notare non sia marginalmente indipendente da low.
+\item I test di indipendenza condizionale forniscono evidenza contro l'ipotesi nulla di indipendenza marginale di ui,smoke,ht e ptl da low, a conferma dei collegamenti presenti nel grafo
+\item La variabile ht è completamente indipendente nel grafo, ma tale ipotesi non è confermata dal test.\\ Notiamo tuttavia che il $p$-value è molto vicino alla soglia di significatività $\alpha=0.05$
+\item Il modello di regressione logistica e $\text{low} \sim \text{ht + ptl + lwt + smoke + race}$ includeva le variabili ht e lwt, che in questo caso risultano marginalmente indipendenti da low.
+\\Tuttavia viene confermata la forte relazione tra ptl e la variabile obiettivo low e viene spiegato il motivo della selezione di modelli con solamente la variabile ptl, poichè è l'unica che condiziona low.
+\end{itemize}
+
+Questa struttura inoltre fa sì che race sia condizionalmente indipendente da low dato smoke e ptl, e smoke e ui siano condizionalmente indipendenti da low dato ptl.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{low.ug} \hlkwb{<-} \hlkwd{ug}\hlstd{(}\hlopt{~}\hlstd{smoke}\hlopt{*}\hlstd{race} \hlopt{+} \hlstd{ptl.f}\hlopt{*}\hlstd{smoke} \hlopt{+} \hlstd{ui}\hlopt{*}\hlstd{ptl.f} \hlopt{+} \hlstd{low}\hlopt{*}\hlstd{ptl.f)}
+\hlkwd{separates}\hlstd{(}\hlstr{"race"}\hlstd{,}\hlstr{"low"}\hlstd{,}\hlkwd{c}\hlstd{(}\hlstr{"ptl.f"}\hlstd{,}\hlstr{"smoke"}\hlstd{),low.ug)}
+\end{alltt}
+\begin{verbatim}
+## [1] TRUE
+\end{verbatim}
+\begin{alltt}
+\hlkwd{separates}\hlstd{(}\hlstr{"smoke"}\hlstd{,}\hlstr{"low"}\hlstd{,}\hlkwd{c}\hlstd{(}\hlstr{"ptl.f"}\hlstd{),low.ug)}
+\end{alltt}
+\begin{verbatim}
+## [1] TRUE
+\end{verbatim}
+\begin{alltt}
+\hlkwd{separates}\hlstd{(}\hlstr{"ui"}\hlstd{,}\hlstr{"low"}\hlstd{,}\hlkwd{c}\hlstd{(}\hlstr{"ptl.f"}\hlstd{),low.ug)}
+\end{alltt}
+\begin{verbatim}
+## [1] TRUE
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Si valuta inoltre l'ipotesi di indipendenza condizionale di smoke e ui: 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{ui} \hlopt{+}\hlstd{ptl.f)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ ui | ptl.f 
+## Statistic (DEV):    4.823 df: 2 p-value: 0.0897 method: CHISQ
+## Slice information:
+##   statistic p.value df ptl.f
+## 1    4.7177 0.02985  1    No
+## 2    0.1052 0.74568  1   Yes
+\end{verbatim}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{smoke} \hlopt{+}\hlstd{ptl.f)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ smoke | ptl.f 
+## Statistic (DEV):    2.621 df: 2 p-value: 0.2697 method: CHISQ
+## Slice information:
+##   statistic p.value df ptl.f
+## 1    1.7904  0.1809  1    No
+## 2    0.8307  0.3621  1   Yes
+\end{verbatim}
+\begin{alltt}
+\hlkwd{ciTest}\hlstd{(data,}\hlkwc{set}\hlstd{=}\hlopt{~}\hlstd{low} \hlopt{+} \hlstd{race} \hlopt{+}  \hlstd{smoke} \hlopt{+} \hlstd{ptl.f)}
+\end{alltt}
+\begin{verbatim}
+## Testing low _|_ race | smoke ptl.f 
+## Statistic (DEV):   14.701 df: 8 p-value: 0.0652 method: CHISQ
+## Slice information:
+##   statistic p.value df smoke ptl.f
+## 1    7.3630 0.02519  2    No    No
+## 2    3.6936 0.15774  2   Yes    No
+## 3    3.2779 0.19418  2    No   Yes
+## 4    0.3669 0.83239  2   Yes   Yes
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+I test non forniscono evidenza contro le ipotesi di indipendenza.
+
+E' possibile ripetere l'analisi con una procedura forward, partendo dal modello di completa indipendenza ed aggiungendo nuovi archi in modo iterativo.\\
+Utilizzando il criterio BIC si ottiene lo stesso modello visto precedentemente, mentre con il criterio AIC si ottiene il seguente modello
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-52-1} 
+\end{knitrout}
+
+\begin{itemize}
+\item low è condizionalmente indipendente dal peso della madre date le restanti variabili
+\item low è condizionalmente indipendente dall'irritabilità uterina date le restanti variabili
+\item Il numero di visite dal ginecologo effettuate nel primo trimestre e l'età (dicotomizzata) risultano marginalmente indipendenti
+\end{itemize}
+
+\subsection{Directed Acyclic Graphs}
+Per studiare la propagazione delle probabilità condizionali lungo il grafo e capire come alcune evidenze modificano la probabilità della variabile obiettivo low,
+è possibile utilizzare un modello grafico basato su un DAG, ovvero una rete Bayesiana.
+\\Come effettuato in precedenza, la struttura del grafo potrà essere appresa dai dati attraverso un algoritmo hill-climbing.
+
+
+
+Con un approccio "Naive", potremmo pensare di non impostare nesssun vincolo sugli archi e utilizzando il criterio AIC per la penalizzazione otterremmo il seguente modello
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-54-1} 
+\end{knitrout}
+
+Tuttavia, è possibile notare che in questo modello si afferma che low determini l'etnia delle madri e le abitudini sul fumo.
+Non è possibile accettare una affermazione di questo tipo, pertanto è possibile vietare alcuni archi, in base all'ordine temporale che è necessario assumere sulle variabili.
+\\Le variabili verranno suddivise nei seguenti gruppi
+
+\begin{enumerate}
+\item{background}: race,age,ftv,lwt
+\item{fattori}: smoke,ht,ui,ptl
+\item{obiettivo}:low
+\end{enumerate}
+
+Non saranno permessi archi dal gruppo 2 verso il gruppo 1 e dal gruppo 3 verso 2 e 1.
+Lanciando nuovamente la procedura di apprendimento del grafo dai dati, si ottiene il seguente DAG
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{block} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlnum{2}\hlstd{,}\hlnum{2}\hlstd{,}\hlnum{2}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{)}
+\hlstd{blM} \hlkwb{<-} \hlkwd{matrix}\hlstd{(}\hlnum{0}\hlstd{,}\hlkwc{nrow}\hlstd{=}\hlnum{9}\hlstd{,}\hlkwc{ncol}\hlstd{=}\hlnum{9}\hlstd{)}
+\hlkwd{rownames}\hlstd{(blM)} \hlkwb{<-} \hlkwd{colnames}\hlstd{(blM)} \hlkwb{<-} \hlkwd{names}\hlstd{(data)}
+\hlkwa{for} \hlstd{(b} \hlkwa{in} \hlnum{2}\hlopt{:}\hlnum{3}\hlstd{) blM[block}\hlopt{==}\hlstd{b,block}\hlopt{<}\hlstd{b]} \hlkwb{<-} \hlnum{1}
+
+\hlstd{blackL} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwd{get.edgelist}\hlstd{(}\hlkwd{as}\hlstd{(blM,}\hlstr{"igraph"}\hlstd{)))}
+\hlkwd{names}\hlstd{(blackL)} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlstr{"from"}\hlstd{,} \hlstr{"to"}\hlstd{)}
+
+\hlstd{birthwt.bn1} \hlkwb{<-} \hlkwd{hc}\hlstd{(data,}\hlkwc{blacklist}\hlstd{=blackL,}\hlkwc{score}\hlstd{=}\hlstr{"aic"}\hlstd{)}
+\hlkwd{plot}\hlstd{(}\hlkwd{as}\hlstd{(}\hlkwd{amat}\hlstd{(birthwt.bn1),}\hlstr{"graphNEL"}\hlstd{))}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-55-1} 
+\end{knitrout}
+
+Questo modello rispetta l'ordine temporale che è stato supposto, fornendo una rappresentazione efficace delle indipendenze condizionali.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{dSep}\hlstd{(}\hlkwd{amat}\hlstd{(birthwt.bn1),}\hlstr{"ftv"}\hlstd{,}\hlstr{"low"}\hlstd{,}\hlkwa{NULL}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+## [1] FALSE
+\end{verbatim}
+\begin{alltt}
+\hlkwd{dSep}\hlstd{(}\hlkwd{amat}\hlstd{(birthwt.bn1),}\hlstr{"age.f"}\hlstd{,}\hlstr{"low"}\hlstd{,}\hlkwa{NULL}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+## [1] FALSE
+\end{verbatim}
+\begin{alltt}
+\hlkwd{dSep}\hlstd{(}\hlkwd{amat}\hlstd{(birthwt.bn1),}\hlstr{"ftv"}\hlstd{,}\hlstr{"low"}\hlstd{,}\hlkwd{c}\hlstd{(}\hlstr{"ptl.f"}\hlstd{,}\hlstr{"ui"}\hlstd{))}
+\end{alltt}
+\begin{verbatim}
+## [1] TRUE
+\end{verbatim}
+\begin{alltt}
+\hlkwd{dSep}\hlstd{(}\hlkwd{amat}\hlstd{(birthwt.bn1),}\hlstr{"age.f"}\hlstd{,}\hlstr{"low"}\hlstd{,}\hlkwd{c}\hlstd{(}\hlstr{"ptl.f"}\hlstd{,}\hlstr{"smoke"}\hlstd{,}\hlstr{"ui"}\hlstd{))}
+\end{alltt}
+\begin{verbatim}
+## [1] TRUE
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Con l'obiettivo di ottenere un modello più semplice su cui fare inferenza, viene ripetuto lo studio utilizzando il criterio di selezione BIC
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{birthwt.bn2} \hlkwb{<-} \hlkwd{hc}\hlstd{(data,}\hlkwc{blacklist}\hlstd{=blackL,}\hlkwc{score}\hlstd{=}\hlstr{"bic"}\hlstd{)}
+\hlcom{#plot(as(amat(birthwt.bn2),"graphNEL"))}
+\hlstd{low.dag} \hlkwb{<-} \hlkwd{dag}\hlstd{(}\hlopt{~}\hlstd{smoke}\hlopt{*}\hlstd{race} \hlopt{+} \hlstd{ptl.f}\hlopt{*}\hlstd{smoke} \hlopt{+} \hlstd{ui}\hlopt{*}\hlstd{ptl.f} \hlopt{+} \hlstd{low}\hlopt{*}\hlstd{ptl.f)}
+\hlkwd{plot}\hlstd{(low.dag)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-57-1} 
+\end{knitrout}
+
+Questo modello riprende la struttura degli archi vista nel modello non orientato ed è in linea con gli studi precedenti sull'indipendenza marginale delle variabili.
+\\Utilizzando grain è possibile effettuare delle query in modo da ottenere la probabilità condizionata dall'evidenza di alcune variabili esplicative
+
+\begin{itemize}
+\item Probabilità marginale di avere un bambino sottopeso
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+## $low
+## low
+##        No       Yes 
+## 0.6878307 0.3121693
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\item Probabilità condizionale di avere avere un bambino sottopeso dati precedenti parti prematuri
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+##      ptl.f
+## low          No Yes
+##   No  0.7421384 0.4
+##   Yes 0.2578616 0.6
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\item Probabilità condizionale di avere un bambino sottopeso, date le abitudini di fumo
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+##      smoke
+## low         No       Yes
+##   No  0.706437 0.6589155
+##   Yes 0.293563 0.3410845
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\item Probabilità condizionale di avere un bambino sottopeso, data l'etnia della madre
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+##      race
+## low       White     Black     Other
+##   No  0.6806962 0.6881595 0.6979257
+##   Yes 0.3193038 0.3118405 0.3020743
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+Possiamo notare come le probabilità siano estremamente simili tra loro e pressochè identiche alla probabilità marginale di low.
+
+\item Probabilità condizionale di avere un bambino sottopeso, dato il fumo e la presenza di irritabilità uterina
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+## , , ui = No
+## 
+##      smoke
+## low          No       Yes
+##   No  0.7131353 0.6725039
+##   Yes 0.2868647 0.3274961
+## 
+## , , ui = Yes
+## 
+##      smoke
+## low          No       Yes
+##   No  0.6647129 0.5893453
+##   Yes 0.3352871 0.4106547
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\end{itemize}
+
+Infine, è possibile provare a prevedere quali bambini saranno sottopeso sfruttando la rete appresa.
+I dati verranno divisi effettuando un campionamento casuale dai 189 campioni, ed utilizzandone il 75\% per l'addestramento e il 25\% per la validazione,
+quindi il modello verrà riaddestrato solamente sul dataset di addestramento e valutato sul dataset di validazione.
+
+Verrà quindi valutata la differenza tra il numero di casi predetti dal modello e il valore effettivo di low
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{training_size}\hlkwb{=} \hlnum{0.75}
+\hlstd{training_rows} \hlkwb{<-} \hlkwd{sample}\hlstd{(}\hlkwd{seq_len}\hlstd{(}\hlkwd{nrow}\hlstd{(data))}
+                        \hlstd{,} \hlkwc{size} \hlstd{=} \hlkwd{floor}\hlstd{(training_size} \hlopt{*} \hlkwd{nrow}\hlstd{(data)))}
+
+\hlstd{train} \hlkwb{<-}\hlstd{data[training_rows,]}
+\hlstd{val} \hlkwb{<-}\hlstd{data[}\hlopt{-}\hlstd{training_rows,]}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{lowmod2} \hlkwb{<-} \hlkwd{compile}\hlstd{(}\hlkwd{grain}\hlstd{(low.dag,}\hlkwc{data}\hlstd{=train))}
+
+\hlstd{pred} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwd{predict}\hlstd{(lowmod2,}\hlkwc{resp}\hlstd{=}\hlstr{"low"}\hlstd{,}\hlkwc{newdata}\hlstd{=val}
+                           \hlstd{,}\hlkwc{type}\hlstd{=}\hlstr{"class"}\hlstd{))}
+
+\hlkwd{table}\hlstd{(val}\hlopt{$}\hlstd{low)}
+\end{alltt}
+\begin{verbatim}
+## 
+##  No Yes 
+##  33  15
+\end{verbatim}
+\begin{alltt}
+\hlkwd{table}\hlstd{(val}\hlopt{$}\hlstd{low)}\hlopt{/}\hlkwd{sum}\hlstd{(}\hlkwd{table}\hlstd{(val}\hlopt{$}\hlstd{low))}
+\end{alltt}
+\begin{verbatim}
+## 
+##     No    Yes 
+## 0.6875 0.3125
+\end{verbatim}
+\begin{alltt}
+\hlkwd{table}\hlstd{(pred}\hlopt{$}\hlstd{low)}
+\end{alltt}
+\begin{verbatim}
+## 
+##  No Yes 
+##  39   9
+\end{verbatim}
+\begin{alltt}
+\hlstd{tt} \hlkwb{<-} \hlkwd{table}\hlstd{(val}\hlopt{$}\hlstd{low,pred}\hlopt{$}\hlstd{low)}
+\hlstd{tt}
+\end{alltt}
+\begin{verbatim}
+##      
+##       No Yes
+##   No  31   2
+##   Yes  8   7
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sweep}\hlstd{(tt,}\hlnum{1}\hlstd{,}\hlkwd{apply}\hlstd{(tt,}\hlnum{1}\hlstd{,sum),}\hlkwc{FUN}\hlstd{=}\hlstr{"/"}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##      
+##               No        Yes
+##   No  0.93939394 0.06060606
+##   Yes 0.53333333 0.46666667
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+Il modello ha una performance mediocre: circa il 40\% dei bambini sottopeso sono stati classificati correttamente.
+E' possibile ripetere la procedura sfruttando il DAG appreso con il criterio AIC. 
+\\Per evitare casi nei quali non siano presenti osservazioni, è stato introdotto un fattore di smoothing pari a 0.1
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{low.dag2} \hlkwb{<-} \hlkwd{dag}\hlstd{(}\hlopt{~}\hlstd{smoke}\hlopt{*}\hlstd{age.f} \hlopt{+} \hlstd{ptl.f}\hlopt{*}\hlstd{smoke} \hlopt{+} \hlstd{ui}\hlopt{*}\hlstd{ptl.f} \hlopt{+} \hlstd{low}\hlopt{*}\hlstd{ptl.f} \hlopt{+} \hlstd{ptl.f}\hlopt{*}\hlstd{ftv} \hlopt{+}\hlstd{ht}\hlopt{*}\hlstd{ui} \hlopt{+} \hlstd{ui}\hlopt{*}\hlstd{lwt.f} \hlopt{+} \hlstd{lwt.f}\hlopt{*}\hlstd{race} \hlopt{+}\hlstd{smoke}\hlopt{*}\hlstd{race} \hlopt{+} \hlstd{low}\hlopt{*}\hlstd{ht)}
+
+\hlstd{lowmod3} \hlkwb{<-} \hlkwd{compile}\hlstd{(}\hlkwd{grain}\hlstd{(low.dag2,}\hlkwc{data}\hlstd{=train,}\hlkwc{smooth}\hlstd{=}\hlnum{0.1}\hlstd{))}
+
+\hlstd{pred2} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwd{predict}\hlstd{(lowmod3,}\hlkwc{resp}\hlstd{=}\hlstr{"low"}\hlstd{,}\hlkwc{newdata}\hlstd{=val,}\hlkwc{type}\hlstd{=}\hlstr{"class"}\hlstd{))}
+
+\hlkwd{table}\hlstd{(pred2}\hlopt{$}\hlstd{low)}
+\end{alltt}
+\begin{verbatim}
+## 
+##  No Yes 
+##  47   1
+\end{verbatim}
+\begin{alltt}
+\hlstd{tt2} \hlkwb{<-} \hlkwd{table}\hlstd{(val}\hlopt{$}\hlstd{low,pred2}\hlopt{$}\hlstd{low)}
+\hlstd{tt2}
+\end{alltt}
+\begin{verbatim}
+##      
+##       No Yes
+##   No  33   0
+##   Yes 14   1
+\end{verbatim}
+\begin{alltt}
+\hlkwd{sweep}\hlstd{(tt2,}\hlnum{1}\hlstd{,}\hlkwd{apply}\hlstd{(tt2,}\hlnum{1}\hlstd{,sum),}\hlkwc{FUN}\hlstd{=}\hlstr{"/"}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+##      
+##               No        Yes
+##   No  1.00000000 0.00000000
+##   Yes 0.93333333 0.06666667
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+In questo caso le performance sono peggiori, quindi è preferibile il modello selezionato attraverso il criterio BIC.
+
+\section{Conclusioni}
+
+\begin{itemize}
+\item Il numero di visite effettuate dal ginecologo durante il primo trimestre e l'età delle madri non hanno un effetto significativo sul peso dei neonati
+\item Una madre che ha avuto precedenti parti prematuri ha una maggiore probabilità di avere un bambino 
+\item Un modello di regressione lineare $\text{bwt} \sim \text{ race + smoke + ht + ui + lwt}$ si adatta sufficientemente bene ai dati, pur mostrando un basso indice $R^2$.
+\item Un possibile modello per la classificazione dei bambini sottopeso è il modello di regressione logistica $\text{low} \sim \text{ht + ptl + lwt + smoke + race}$, ottenuto come miglior compromesso tra complessità e correttezza del modello.
+\item La rete bayesiana scelta ha confermato la relazione tra il numero di parti prematuri e la probabilità di avere un bambino sottopeso. Il peso della madre e la familiarità con l'ipertensione non compaiono nel modello più semplice, ma ottengono prestazioni comparabili ad un modello più complesso che include tutte le variabili.
+\end{itemize}
+
+\end{document}

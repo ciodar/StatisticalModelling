@@ -1,0 +1,982 @@
+\documentclass{article}
+\usepackage{amsmath}
+
+\title{Progetto FSM - dataset birthwt}
+\author{Dario Cioni}
+\date{11/02/2022}
+
+\newcommand\given[1][]{\:#1\vert\:}
+
+\begin{document}
+
+\maketitle
+\cleardoublepage
+
+
+\tableofcontents
+\cleardoublepage
+
+\section{Introduzione}
+L'obiettivo del presente elaborato è studiare i fattori che contribuiscono al basso peso alla nascita nei neonati, 
+analizzando i dati presenti nel dataset birthwt. \\
+Il dataset contiene dati raccolti su 189 bambini nati al Baystate Medical Center, Springfield, Mass nel 1986.
+Le variabili coinvolte sono 10:
+\begin{itemize}
+\item{bwt:} peso alla nascita espresso in grammi
+\item{age:} età della madre
+\item{lwt:} peso della madre (espresso in libbre) alla fine dell'ultimo periodo mestruale
+\item{race:} etnia della madre (1=bianca, 2=nera, 3=altro)
+\item{smoke:} indica se la madre è fumatrice, (1=fumatrice,0 altrimenti)
+\item{ptl:} numero di precedenti parti prematuri
+\item{ht:} indica se esiste una storia di ipertensione (1=presente,0 assente)
+\item{ui:} indica la presenza di irritabilità uterina (1=presente,0 assente)
+\item{ftv:} numero di visite dal ginecologo nel primo trimestre
+\item{low:} variabile dicotomizzata da bwt, indica se il bambino è al di sotto di 2.5 kg
+\end{itemize}
+
+<<echo=FALSE,results='hide'>>=
+data("birthwt", package = 'MASS')
+
+src <-birthwt
+str(birthwt)
+attach(birthwt)
+@
+
+\section{Analisi esplorativa}
+Le variabili presenti nel dataset possono essere suddivise nel seguente modo
+\begin{itemize}
+\item due variabili a valori continui (bwt,lwt)
+\item tre variabili a valori discreti (age,ptl,ftv)
+\item cinque variabili categoriche (race,smoke,ht,ui,low)
+\end{itemize}
+
+<<echo=FALSE>>=
+birthwt$race <- factor(birthwt$race, levels = c(1:3), labels=c("White","Black","Other"))
+birthwt$smoke <- factor(birthwt$smoke, levels = c(0,1), labels = c("No", "Yes"))
+birthwt$ht  <- factor(birthwt$ht, levels = c(0,1), labels = c("No", "Yes"))
+birthwt$ui  <- factor(birthwt$ui, levels = c(0,1),labels = c("No", "Yes"))
+birthwt$low <- factor(birthwt$low, levels = c(0,1),labels = c("No", "Yes"))
+
+ftv.c <- birthwt$ftv
+ptl.c <- birthwt$ptl
+
+birthwt$ftv <- ordered(factor(birthwt$ftv))
+birthwt$ptl <- ordered(factor(birthwt$ptl))
+
+head(birthwt)
+
+summary(birthwt)
+@
+
+\subsection{Variabili continue}
+Attraverso dei grafici è possibile studiare la composizione del dataset e vedere se è presente una relazione tra le variabili continue la variabile obiettivo bwt.
+Studiamo la distribuzione dei dati mediante degli scatter plot
+
+<<include=FALSE>>=
+library(ggplot2)
+library(patchwork)
+p1 <- ggplot(data=birthwt,aes(x=bwt,y=age,color=low)) + geom_point() + labs( x="baby weight (grams)",y="mother age (years)")  
+p2 <- ggplot(data=birthwt,aes(x=bwt,y=lwt,color=low)) + geom_point() + labs( x="baby weight (grams)",y="mother weight (pounds)")
+p3 <- ggplot(data=birthwt, aes(x=age)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white",bins = 10)+
+ geom_density(alpha=.2, fill="#FF6666") +
+ labs(x="mother age (years)")
+p4 <- ggplot(data=birthwt, aes(x=bwt)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white",bins = 10)+
+ geom_density(alpha=.2, fill="#FF6666") +
+ labs(x="mother weight (pounds)")
+@
+
+<<echo=FALSE,fig=TRUE,fig.height=4>>=
+p1 + labs(title="Mother age scatter and distribution")  + p3 + theme_minimal() 
+@
+
+L'età delle madri va da 14 a 45 anni, con mediana di 23 anni.
+Possiamo notare che la distribuzione è spostata verso sinistra. Un modo di normalizzarla è l'utilizzo della radice quadrata dell'età
+<<>>=
+birthwt$age <- sqrt(birthwt$age)
+@
+
+<<echo=FALSE,fig=TRUE,fig.height=4>>=
+p2 + labs(title="Mother weight scatter and distribution") + p4 + theme_minimal() 
+@
+
+Il peso della madre all'ultimo ciclo mestruale va da 80 libbre a 250 libbre (da 36 a 113 kg), con mediana 121 (55 kg).
+\\In questo caso la distribuzione non risulta squilibrata.
+
+<<echo=FALSE,results='hide',fig=TRUE,fig.height=5>>=
+ggplot(data=src,aes(x=age,y=lwt,color=factor(low, levels = c(0,1), labels = c("No", "Yes")))) + geom_point() labs(
+  x="mother age (years)",y="mother weight (pounds)",title = "Low weight scatter plot by age and mother weight",colour = "Underweight"
+)
+@
+
+Gli scatter plot non evidenziano una chiara relazione, lineare o polinomiale, tra le variabili age e lwt e la variabile di uscita bwt, nè una chiara interazione tra age e lwt.
+
+\subsection{Variabili categoriche}
+Le variabili categoriche smoke, ht e ui sono binarie.
+Per smoke è presente un buon numero di campioni, mentre le madri con ipertensione e irritabilità uterina sono presenti in numero più ridotto nel dataset.
+La variabile race possiede tre valori, White, Black e Other. Questa suddivisione è abbastanza grossolana, ed il campioni di madri nere è inferiore alle altre due categorie.
+
+<<echo=FALSE,results='hide',fig=TRUE>>=
+par(mar=c(2.5,2.5,1,1))
+layout(matrix(c(1,1,2,3,4,5),nrow=3,ncol=2,byrow=TRUE),heights=c(1,3,3,3))
+plot.new()
+text(0.5,0.5,"Categorical variables frequency",cex=2,font=2)
+barplot(table(birthwt$race),xlab="race",main="race")
+barplot(table(birthwt$smoke),xlab="smoke",main="smoke")
+barplot(table(birthwt$ht),xlab="hypertension",main="hypertension")
+barplot(table(birthwt$ui),xlab="uterine irritability",main="uterine irritability")
+
+@
+
+Attraverso dei boxplot è possibile studiare se esiste un legame tra queste variabili e la variabile risposta bwt.
+
+<<echo=FALSE,results='hide',fig=TRUE>>=
+par(mar=c(2.5,2.5,1,1))
+layout(matrix(c(1,1,2,3,4,5),nrow=3,ncol=2,byrow=TRUE),heights=c(1,3,3,3))
+plot.new()
+text(0.5,0.5,"Categorical variables distribution",cex=2,font=2)
+boxplot(bwt~birthwt$race,xlab="race",ylab="baby weight",main="race")
+boxplot(bwt~birthwt$smoke,xlab="smoke",ylab="baby weight",main="smoke")
+boxplot(bwt~birthwt$ht,xlab="hypertension",ylab="baby weight",main="hypertension")
+boxplot(bwt~birthwt$ui,xlab="uterine irritability",ylab="baby weight",main="uterine irritability")
+@
+
+\begin{itemize}
+\item Le madri madri nere o di altra etnia hanno mediana del peso dei bambini inferiore rispetto alle madri bianche.
+\item Nelle madri fumatrici la mediana di bwt è inferiore
+\item Nel caso in cui sia presente ipertensione o irritabilità uterina si ha una forte diminuzione della mediana di bwt. 
+\end{itemize}
+Queste 4 variabili risultano possibilmente connesse al peso e potranno essere analizzate più a fondo in seguito utilizzando modelli statistici.
+
+\subsection{Variabili discrete}
+Studiando la distribuzione delle variabili discrete ptl ed ftv
+
+<<echo=FALSE,results='hide',fig=TRUE>>=
+par(mar=c(2.5,2.5,1,1))
+layout(matrix(c(1,1,2,3,4,5),nrow=3,ncol=2,byrow=TRUE),heights=c(1,3,3,3))
+plot.new()
+text(0.5,0.5,"Discrete variables frequency and distribution",cex=2,font=2)
+barplot(table(ptl),xlab="previous premature labours",main="previous premature labours")
+barplot(table(ftv),xlab="gynecological visits in 1st trimester",main="gynecological visits in 1st trimester")
+boxplot(birthwt$bwt~ptl,xlab="previous premature labours",ylab="baby weight")
+boxplot(birthwt$bwt~ftv,xlab="gynecological visits in 1st trimester",ylab="baby weight")
+@
+
+Le variabili ptl e ftv mostrano un elevato numero di campioni con il valore pari a zero, mentre pochi campioni all'aumentare del valore della variabile.
+Per sopperire a questo squilibrio, potranno essere dicotomizzate in variabili binarie, dove 0 equivale all'assenza della caratteristica, ed 1 equivale alla presenza della caratteristica in valore maggiore o uguale a 1.
+
+<<include=FALSE>>=
+
+age.c <- NULL
+age.c[birthwt$age <sqrt(23)]<-"Young"
+age.c[birthwt$age >= sqrt(23)]<-"Adult"
+age.c[birthwt$age >= sqrt(35) ]<-"Over 35"
+
+age.f <- factor(age.c, levels = c("Young", "Adult", "Over 35"))
+
+birthwt$age.f <- age.f
+
+lwt.c <- NULL
+lwt.c[birthwt$lwt <= median(birthwt$lwt)]<-"No"
+lwt.c[birthwt$lwt > median(birthwt$lwt)]<-"Yes"
+
+lwt.f <- factor(lwt.c)
+birthwt$lwt.f <- lwt.f
+
+ptl.f <- factor(ifelse(ptl.c == 0,"No","Yes"), levels = c("No", "Yes"))
+ftv.f <- factor(ifelse(ftv.c == 0,"No","Yes"), levels = c("No", "Yes"))
+
+birthwt$ptl.f <- ptl.f
+birthwt$ftv.f <- ftv.f
+
+#head(ftv.c)
+#head(ftv.f)
+@
+
+<<echo=FALSE,fig=TRUE>>=
+par(mar=c(2.5,2.5,1,1))
+layout(matrix(c(1,1,2,3,4,5),nrow=3,ncol=2,byrow=TRUE),heights=c(1,3,3,3))
+plot.new()
+text(0.5,0.5,"Dichotomized discrete variables frequency and distribution",cex=2,font=2)
+barplot(table(ptl.f),xlab="previous premature labours",main="previous premature labours")
+barplot(table(ftv.f),xlab="gynecological visits in 1st trimester",main="gynecological visits in 1st trimester")
+boxplot(birthwt$bwt~ptl.f,xlab="previous premature labours",ylab="baby weight")
+boxplot(birthwt$bwt~ftv.f,xlab="gynecological visits in 1st trimester",ylab="baby weight")
+@
+
+Le madri che hanno avuto precedenti parti prematuri, sembrano avere una mediana del peso inferiore: pur avendo pochi dati a disposizione possiamo pensare che esista una relazione tra il numero di parti prematuri della madre e il peso del nascituro.
+Il numero di visite dal ginecologo nel primo trimestre non sembra essere così rilevante, in quanto evidenzia una differenza minima nelle madri che non hanno effettuato visite rispetto alle madri che hanno fatto almeno una visita.
+
+\subsection{Analisi delle correlazioni}
+Il dataset fornito ha un buon numero delle variabili: per capire meglio le relazioni tra le variabili è possibile studiare la correlazione tra queste.
+In questo modo, è possibile
+\begin{itemize}
+\item Verificare se esistono variabili collineari
+\item Individuare possibili interazioni tra variabili
+\item Individuare variabili scorrelate in modo da semplificare la successiva creazione di modelli
+\end{itemize}
+
+Si calcola perciò la correlazione di Pearson ed il $p$-value asintotico tra ogni coppia di variabili 
+Nel grafico sono presenti solamente le correlazioni ritenute significative, con $p$-value inferiore a 0.05. 
+Sono colorate in rosso le correlazioni negative, mentre in blu correlazioni positive tra le coppie di variabili.
+Questa informazione potrà essere utilizzata per creare modelli con interazioni tra le variabili
+
+<<include=FALSE>>=
+library(corrplot)
+library(Hmisc)
+library(lmtest)
+library(car)
+@
+
+<<echo=TRUE>>=
+
+corm <- rcorr(as.matrix(src),type="pearson")
+
+p <- corm$P
+p[is.na(p)] <- 0
+@
+<<fig=TRUE,echo=FALSE>>=
+corrplot(corm$r, type="upper", order="hclust",p.mat= p, sig.level=0.05
+         , insig="blank", tl.col = "black", tl.srt = 45
+         ,title="Correlation plot of dataset variables",mar=c(0,0,1,0))
+@
+
+\begin{itemize}
+\item la variabile low è ovviamente correlata a bwt, in quanto sua dicotomizzazione binaria. Nei successivi studi una delle due dovrà essere sempre esclusa.
+\item Rimuovendo low o bwt, non si evidenziano correlazioni così alte da far pensare a collinearità. Questa ipotesi sarà ulteriormente validata in seguito.
+\item race risulta negativamente correlata a smoke (le madri bianche tendono a fumare più di quelle nere o di altre origini)
+\item lwt risulta positivamente correlata a ht
+\item ptl risulta positivamente correlata a ui 
+\item ftv risulta positivamente correlata a age
+\item ui risulta negativamente correlata a bwt (Le madri con irritabilità uterina tendono ad avere figli che pesano di meno). 
+Questa relazione è particolarmente interessante poichè bwt è la variabile che vogliamo stimare. L'effettiva presenza di una relazione tra le variabili può essere ulteriormente visualizzata effettuando un test di correlazione, simile a quello utilizzato per costruire il grafico
+\end{itemize}
+
+<<echo=TRUE>>=
+cor.test(src$bwt, src$ui)
+@
+
+La correlazione stimata è di $-0.28$, e poichè il $p$-value è inferiore al livello di significatività 0.05, è possibile rifiutare l'ipotesi nulla di non correlazione.
+
+\subsection{Considerazioni sulle variabili}
+
+\begin{itemize}
+\item La variabile race, oltre a rappresentare una caratterizzazione morfologica e genetica, potrebbe rappresentare un indicatore socio-economico delle madri. Tuttavia, questa suddivisione è grossolana, in quanto non è espressa la composizione della categoria "Other".
+\item La variabile smoke non indica da quanto tempo e con quale regolarità le madri hanno fumato, nè se hanno continuato durante tutto il corso della gravidanza.
+\item Il peso della madre non è direttamente collegabile allo stato di salute della madre (a differenza di indici quali il grado di obesità), ma potrebbe comunque avere una relazione con il peso del figlio.
+\end{itemize}
+
+\section{Modello lineare di regressione}
+Supponiamo di voler prevedere il peso del neonato sulla base del valore delle variabili informative.
+Si utilizzerà come variabile obiettivo bwt, mentre la variabile low verrà esclusa dall'analisi.
+
+\subsection{Modello di regressione semplice}
+Individuiamo un modello di regressione lineare semplice, includendo una sola variabile esplicativa
+
+$$E(\text{bwt} \given \text{X})= \beta_0 + \beta_1 \text{X}$$
+
+Sulla base della correlazione individuata nel capitolo precedente, è possibile verificare se la variabile ui fornisca un buon modello 
+
+<<echo=TRUE>>=
+mq0 <- lm(bwt ~ ui,data=birthwt)
+summary(mq0)
+@
+
+\subparagraph{Commenti}
+\begin{itemize}
+\item La presenza di irritabilità uterina ha un effetto negativo sul peso del bambino
+\item La variabile ui risulta altamente significativa
+\item La statistica F risulta altamente significativa con $p$-value $7.5 \cdot 10^{-5}$
+\item Gli indici $R^2$ sono molto bassi e l'errore residuo è molto alto: questo modello, molto semplice, potrebbe non essere sufficiente a spiegare il peso dei neonati.
+\end{itemize}
+
+<<include=FALSE>>=
+mq01 <- lm(bwt ~ age,data=birthwt)
+summary(mq01)
+mq02 <- lm(bwt ~ lwt,data=birthwt)
+summary(mq02)
+mq03 <- lm(bwt ~ race,data=birthwt)
+summary(mq03)
+mq04 <- lm(bwt ~ smoke,data=birthwt)
+summary(mq04)
+mq05 <- lm(bwt ~ ptl,data=birthwt)
+summary(mq05)
+mq06 <- lm(bwt ~ ht,data=birthwt)
+summary(mq06)
+mq07 <- lm(bwt ~ ftv,data=birthwt)
+summary(mq07)
+mq08 <- lm(bwt ~ ptl.f,data=birthwt)
+summary(mq08)
+mq09 <- lm(bwt ~ ftv.f,data=birthwt)
+summary(mq09)
+@
+
+Ripetendo questa analisi anche per le altre variabili, si trova che
+\begin{itemize}
+\item Le variabili ht, lwt,race e smoke sono significative con $p$-value inferiore a 0.05, mentre age,ptl ed ftv non sono significative
+\item Secondo i modelli stimati, ht, race, smoke hanno un effetto negativo sul peso del neonato. Inoltre, le madri di colore o di altra provenienza hanno un effetto negativo sul peso.
+\item La variabile lwt ha un effetto $\hat{\beta_1} =  4.429 $ positivo
+\item Dicotomizzando la variabile ptl come variabile binaria, questa diventa significativa. Avere avuto precedenti parti prematuri ha un effetto negativo sul peso.
+\item Tutti questi modelli hanno una deviazione standard superiore a quello con la variabile ui ed un indice $R^2$ più basso.
+\end{itemize}
+
+\subsection{Modello di regressione multipla}
+\label{sub:reg_multipla}
+Utilizziamo un modello più complesso, introducendo altre variabili e verificando se porta a miglioramenti.\\
+E' possibile testare il caso estremo del modello completo, nel quale si introducono tutte le variabili esplicative. Le variabili ptl e ftv saranno dicotomizzate in variabili binarie
+
+<<include=FALSE>>=
+mq1 <- lm(bwt ~ age+ lwt + race + smoke + ht + ui + ptl.c + ftv.c
+         ,data=birthwt)
+summary(mq1)
+@
+
+<<echo=TRUE>>=
+mq2 <- lm(bwt ~ age+ lwt + race + smoke + ht + ui + ptl.f + ftv.f 
+          ,data=birthwt)
+summary(mq2)
+@
+
+\subparagraph{Commenti}
+\begin{itemize}
+\item Tutte le variabili tranne lwt (peso della madre) e ftv danno un contributo negativo al peso quando il carattere è presente
+\item Il peso della madre è significativo, essendo inferiore al livello di significatività 0.05
+\item Le variabili smoke,ht e ui risultano significative
+\item A differenza del modello di regressione semplice, la variabile ptl dicotomizzata non è significativa.
+\item Le variabili ftv ed age rimangono non significative
+\item L'errore standard residuo risulta più basso rispetto al modello di regresssione semplice, ma sempre elevato: \\Dato il peso medio dei neonati di 2945 grammi e  un errore residuo di 646.8 grammi, l'errore percentuale è del 21\%. 
+\item Gli indici $R^2$ ed $R^2$ aggiustato sono superiori al modello di regressione semplice, ma non molto alti.
+\item La statistica F del modello è significativa
+\end{itemize}
+
+\subparagraph{Multicollinearità}
+E' possibile controllare ancora una volta l'ipotesi di non collinearità utilizzando il variance inflation factor (VIF). Uno score di 1 indica una assenza di multicollinearità, mentre uno score che si avvicina a 10 indica una forte multicollinearità
+
+<<>>=
+car::vif(mq2)
+@
+
+In questo caso tutte le variabili hanno uno score vicino ad 1, quindi non è presente multicollinearità.
+
+\paragraph{Modello ridotto}
+Consideriamo adesso un modello ridotto, nel quale si escludono le variabili non significative
+
+<<echo=TRUE>>=
+mq3 <- lm(bwt ~  race + smoke + ht + ui + lwt,data=birthwt)
+summary(mq3)
+@
+
+\subparagraph{Commenti}
+\begin{itemize}
+\item Si ha un miglioramento nella significatività di tutte le variabili in base al $p$-value
+\item La statistica F è altamente significativa
+\item L'errore standard e gli indici $R^2$ rimangono simili a quelli del modello completo
+\item Questo modello, notevolmente più semplice, adatta ancora bene i dati
+\end{itemize}
+
+E' possibile escludere anche la variabile lwt, ottenendo un modello ancora più semplice:
+
+<<echo=TRUE>>=
+mq4 <- lm(bwt ~  race + smoke + ht + ui,data=birthwt)
+summary(mq4)
+@
+
+E' possibile notare un errore residuo è più alto (655.4), inoltre questo modello ha solamente variabili esplicative categoriche, pur dovendo fare regressione di una quantità continua.
+
+\subparagraph{Test del rapporto di verosimiglianza}
+Per verificare se i modelli ridotti siano modelli annidati, è possibile utilizzare il test del rapporto di verosimiglianza. 
+Per il calcolo è stato utilizzata la funzione lrtest della libreria lmtest.
+
+<<echo=TRUE>>=
+lrtest(mq2,mq3)
+lrtest(mq2,mq4)
+@
+
+Nel modello che comprende la variabile lwt, si ha un  $p$-value di $0.45$, molto al di sopra della soglia di significatività $\alpha = 0.05$, quindi non si ha evidenza contro l'ipotesi nulla di modello annidato.
+Nel secondo modello, invece si ha un $p$-value pari a $0.056$, appena sopra la soglia di significatività.
+Per questo motivo è stato preferito il primo modello, in quanto potrebbe garantire una migliore previsione, evitando una perdita di informazioni significative.
+
+\subparagraph{Analisi dei residui}
+Possiamo analizzare i residui del modello ridotto, in modo da verificare se questi seguono un andamento lineare o mostrano un pattern differente
+
+<<echo=FALSE,result='hide',fig=TRUE>>=
+plot(mq3,which=1)
+@
+
+Il grafico rappresentante l'andamento dei residui mostra una quasi perfetta linearità.
+Questo fa pensare che un modello lineare riesca ad adattare bene i dati 
+\\Se al contrario avessimo visto un diverso andamento, potrebbe essere utile utilizzare un modello nel quale compaiono funzioni delle variabili in modo da ridurre l'errore.
+
+Valutiamo l’ipotesi di distribuzione normale degli errori: allo scopo si può utilizzare
+il qqplot che confronta la distribuzione empirica dei residui con i quantili della
+distribuzione normale.
+
+<<echo=FALSE,result='hide',fig=TRUE>>=
+e <- mq3$residuals
+qqnorm(e)
+@
+
+L'andamento dei punti è ben sovrapponibile con la bisettrice del grafico,rappresentante i punti della distribuzione normale, quindi l'ipotesi di distribuzione normale degli errori è confermata.
+
+\subsection{Modelli con interazioni}
+I modelli finora utilizzati non supponevano nessuna interazione tra le variabili.
+E' possibile verificare se modelli con interazioni producano una stima migliore: dato il gran numero di variabili a disposizione, è conveniente sfruttare le informazioni ottenute con l'analisi della correlazione effettuata precedentemente, in modo da analizzare solamente i casi nei quali era stata evidenziata una interazione evidente tra due variabili.
+Non verranno considerate interazioni con più di due variabili.
+
+<<echo=TRUE>>=
+mq5 <- lm(bwt ~  + race * smoke + ht + lwt + ui ,data=birthwt)
+summary(mq5)
+
+mq6 <- lm(bwt ~  + race + smoke + ht * lwt + ui ,data=birthwt)
+summary(mq6)
+
+mq7 <- lm(bwt ~  + race + smoke + ht + lwt + ui * ptl.f 
+          ,data=birthwt)
+summary(mq7)
+@
+
+\paragraph{Commenti}
+\begin{itemize}
+\item I modelli hanno una stima della deviazione standard inferiore rispetto al modello senza interazioni e indice $R^2$ migliore, tuttavia la differenza è minima.
+\item In entrambi i casi le interazioni non sono risultate significative, e anche le variabili che compongono le interazioni non risultano più significative
+\end{itemize}
+
+Per questi motivi è stato preferito il modello di regressione lineare che non considera interazioni, in quanto pur essendo più semplice riesce ad adattare bene i dati.
+
+\section{Modello di regressione logistica}
+\label{sec:logistica}
+
+Invece di effettuare una regressione sul peso del bambino bwt, supponiamo di voler solamente predire se il bambino sarà sottopeso (peso inferiore a 2500 grammi), ovvero calcolare il valore atteso
+$$E(\text{low}_i | \{X_i = x_i\}) = \pi_i$$
+Per fare questo, si può utilizzare un modello di regressione logistica.
+Studiamo innanzitutto dei modelli nei quali compare una singola variabile
+
+<<echo=TRUE>>=
+fit1 <- glm(low ~ race, family = binomial, data = birthwt)
+summary(fit1)
+
+fit2 <- glm(low ~ ht, family = binomial, data = birthwt)
+summary(fit2)
+
+fit3 <- glm(low ~ smoke, family = binomial, data = birthwt)
+summary(fit3)
+
+fit4 <- glm(low ~ ui, family = binomial, data = birthwt)
+summary(fit4)
+
+fit5 <- glm(low ~ lwt, family = binomial, data = birthwt)
+summary(fit5)
+
+fit6 <- glm(low ~ ptl.f, family = binomial, data = birthwt)
+summary(fit6)
+
+confint(fit6)
+@
+
+\paragraph{Commenti}
+\begin{itemize}
+\item Per tutte le variabili binarie e categoriche l'intercetta è negativa, mentre le variabili hanno effetto positivo, ovvero tendono a far aumentare la probabilità che la madre abbia un bambino sottopeso.
+\item La variabile lwt (peso della madre) ha un effetto negativo: all'aumentare del peso della madre, la probabilità di avere un bambino sottopeso diminuisce. Questa variabile ha una sufficiente significatività.
+\item La variabile race non è molto significativa, con $p$-value 0.067, maggiore della soglia di significatività 0.05. Anche le variabili age e ftv, non riportate, non sono risultate significative.
+\item Le variabili ht,smoke e ui risultano significative
+\item La variabile ptl risulta molto significativa. In questo caso, è stata utilizzata la variabile dicotomizzata come variabile binaria: 
+Potrebbe esserci una relazione tra le madri che hanno avuto parti prematuri e la probabilità di avere bambini sottopeso.
+\end{itemize}
+
+Possiamo inoltre calcolare un indice pseudo $R^2$ per il modello con la variabile ptl
+$$\text{pseudo} - R^2 = 1 - \frac{\text{deviance}}{\text{null.deviance}}$$
+<<echo=TRUE>>=
+pseudoRfit6 <- ((fit6$null.deviance/-2) - (fit6$deviance /-2)) / (fit6$null.deviance/-2)
+pseudoRfit6
+@
+Questo indice risulta molto basso.  \\E' possibile provare modelli con un maggior numero di variabili per verificare se producono risultati migliori
+
+<<echo = FALSE>>=
+fit7 <- glm(low ~ ht + ptl.f + lwt + ui + smoke + race + age + ftv.f, family = binomial, data = birthwt)
+summary(fit7)
+
+pseudoRfit7 <- ((fit7$null.deviance/-2) - (fit7$deviance /-2)) / (fit7$null.deviance/-2)
+pseudoRfit7
+
+fit8 <- glm(low ~ ht + ptl.f + lwt + smoke + race, family = binomial, data = birthwt)
+summary(fit8)
+
+fit9 <-  glm(low ~ ht + ptl.f + lwt, family = binomial, data = birthwt)
+summary(fit9)
+
+fit10 <- glm(low ~ ht + ptl.f, family = binomial, data = birthwt)
+summary(fit10)
+@
+
+\paragraph{Commenti}
+\begin{itemize}
+\item Nel modello completo le variabili ui, age , ftv, race e smoke non sono significative. L'indice pseudo-$R^2$ è rimasto relativamente basso
+\item Togliendo le variabili ui, age e ftv tutte le restanti variabili diventano significative. L'effetto delle variabili mantiene lo stesso segno trovato in precedenza.
+\item Escludendo le variabili meno significative, sono stati trovati modelli sempre più ridotti, nei quali tutte le variabili hanno una ottima significatività.
+\end{itemize}
+
+Per aiutare a capire se i modelli ridotti siano utilizzabili, si possono nuovamente effettuare dei test di rapporto di verosimiglianza
+
+<<>>=
+lrtest(fit7,fit8,fit9,fit10,fit6)
+@
+
+\begin{itemize}
+\item Il test del rapporto di verosimiglianza tra il modello completo e quello che esclude le variabili ui,age e ftv non fornisce evidenza contro il modello ridotto.
+\item Togliendo ulteriori variabili il test porterebbe a rifiutare i modelli ridotti
+\item Questa scelta dovrà essere approfondita e validata utilizzando algoritmi stepwise e attraverso modelli grafici
+\end{itemize}
+
+Calcoliamo l'indice pseudo-$R^2$ per i modelli ridotti $\text{low} \sim \text{ht + ptl.f + lwt}$
+
+<<echo=TRUE>>=
+pseudoRfit9 <- ((fit9$null.deviance/-2) - (fit9$deviance /-2)) / (fit9$null.deviance/-2)
+pseudoRfit9
+@
+
+e $\text{low} \sim \text{ht + ptl + lwt + smoke + race}$
+
+<<echo=TRUE>>=
+pseudoRfit8 <- ((fit8$null.deviance/-2) - (fit8$deviance /-2)) / (fit8$null.deviance/-2)
+pseudoRfit8
+@
+
+Pur rimanendo abbastanza basso, l'indice è notevolmente migliore rispetto al modello di regressione logistica con la sola variabile ptl, e più alto rispetto al modello $\text{low} \sim \text{ht + ptl.f + lwt}$
+Possiamo valutare un intervallo di confidenza dei parametri
+<<echo=TRUE>>=
+confint(fit8)
+@
+
+Tutte le variabili hanno un intervallo di confidenza che non include lo zero.
+
+\paragraph{Stima della probabilità}
+Possiamo stimare la probabilità $\hat{\pi}_i$ di una madre di avere un figlio sottopeso:
+Prima vediamo la probabilità per una madre bianca che non ha avuto parti prematuri, senza familiarità di ipertensione,  e con un peso vicino alla media (60 kg)
+
+<<echo=TRUE>>=
+stima1 <- exp(coef(fit8)%*%c(1,0,0,132.3,0,0,0))/
+  (1+exp(coef(fit8)%*%c(1,0,0,132.3,0,0,0)))
+stima1
+@
+
+Vediamo adesso la stima per una madre di colore, che ha avuto parti prematuri, con una familiarità di ipertensione e peso vicino alla media (60 kg)
+<<echo=TRUE>>=
+stima2 <- exp(coef(fit8)%*%c(1,1,1,132.3,1,1,0))/
+  (1+exp(coef(fit8)%*%c(1,1,1,132.3,1,1,0)))
+stima2
+@
+
+La probabilità nel secondo caso è del 95\%.
+\paragraph{Odds} Possiamo calcolare una stima degli odds nel secondo caso
+$$\text{odds} = \frac{\pi}{1-\pi} = \frac{0.953}{0.047}=20,28$$
+
+E' possibile vedere l'andamento del logaritmo degli odds all'aumentare del peso della madre
+
+<<echo=TRUE,fig=TRUE>>=
+coeff <- fit8$coefficients
+Lodds <- coeff[1] + coeff[2]*src$ht + coeff[3]*ptl.c + coeff[4]*src$lwt + coeff[5]*src$smoke + coeff[6]*src$race
+
+plot(src$lwt,Lodds,xlab="mother weight(pounds)",main="Log odds by mother weight")
+abline(0,0)
+@
+
+Pur notando un andamento decrescente, i punti risultano molto sparsi. Si nota anche che il numero di campioni diminuisce all'aumentare del peso, cosa che rende più difficile verificare la relazione tra gli odds e il peso della madre
+
+\subsection{Modelli con interazioni}
+
+Verifichiamo se sono presenti interazioni tra le variabili, utilizzando le variabili migliori individuate precedentemente.
+La correlazione studiata in precedenza non ha individuato tuttavia forti legami tra le variabili
+
+<<echo=TRUE>>=
+fit11 <- glm(low ~ ht + ptl.f + lwt + smoke * race
+             , family = binomial
+             , data = birthwt)
+summary(fit11)
+
+fit12 <- glm(low ~ ht * lwt + ptl.f  + smoke + race
+             , family = binomial
+             , data = birthwt)
+summary(fit12)
+
+fit13 <- glm(low ~ ht + lwt + ptl.f + age * ftv.c
+             , family = binomial
+             , data = birthwt)
+summary(fit13)
+@
+
+L'unica interazione che è stata provata come significativa è quella tra età e numero di visite effettuate dal ginecologo nel primo trimestre (ftv). 
+Tuttavia, possiamo vedere come l'età da sola non sia una variabile significativa, inoltre le variabili age e ftv erano state scartate nelle precedenti analisi.
+Come nella regressione lineare, la scelta è orientata verso il modello privo di interazioni.
+
+\section{Selezione del modello}
+
+Per confermare quanto ottenuto effettuando una selezione informata dei modelli, si possono utilizzare degli algoritmi stepwise sfruttando diversi criteri di selezione del modello.
+Saranno impiegati i criteri di selezione AIC (\emph{Akaike's information criterion}) e BIC (\emph{Bayesian information criterion}),e sarà effettuata una ricerca del modello in avanti (\emph{forward}) partendo dal modello nullo con la sola intercetta, all'indietro (\emph{backward}) partendo dal modello completo e mista (\emph{both}), partendo dal modello nullo ma con possibilità di rimuovere variabili aggiunte durante le iterazioni.
+
+\subsection{Modelli di regressione lineare}
+Troviamo un modello di regressione della variabile bwt, utilizzando le variabili ptl e ftv come ordinali, age e lwt come interi ed escludendo dal dataset la variabile low
+
+<<echo=TRUE,results='hide'>>=
+reg.data = birthwt[c(2,3,4,5,6,7,8,9,10)]
+mq0 <- lm(bwt ~ 1,data=reg.data)
+mq.sat <- lm (bwt ~age+lwt+race+smoke+ptl+ht+ui+ftv,data=reg.data)
+@
+
+\subsubsection{Metodo Forward}
+
+Partendo dal modello nullo con la sola intercetta, effettuiamo una procedura stepwise per la selezione del modello.
+
+<<echo=TRUE,results='hide'>>=
+forw_aic <- step(mq0,scope = formula(mq.sat)
+                 , direction="forward", k=2)
+
+forw_bic <- step(mq0,scope = formula(mq.sat)
+                 , direction="forward", k=log(length(reg.data$bwt)))
+@
+Il metodo AIC termina con il modello 
+$$\text{bwt} \sim \text{ui + race + smoke + ht + lwt + ptl}$$
+
+Il modello BIC termina con il modello 
+$$\text{bwt} \sim \text{ui + race + smoke + ht + lwt}$$
+Questo secondo modello è lo stesso che era stato scelto durante l'analisi in \ref{sub:reg_multipla},
+fornendo ulteriore conferma della bontà del modello scelto.\\
+Il modello selezionato con criterio AIC e quello selezionato con criterio BIC differiscono per la variabile ptl, non selezionata secondo il criterio BIC, solitamente più parsimonioso.
+\\Effettuando una ricerca mista che permette la rimozione di variabili, si trovano gli stessi modelli
+
+\subsubsection{Metodo Backward}
+
+Partendo dal modello saturo, si effettua una procedura stepwise per la selezione del modello.
+
+<<echo=TRUE,results='hide'>>=
+back_aic <- step(mq.sat,scope = formula(mq.sat)
+                 , direction="backward", k=2, trace=FALSE)
+back_bic <- step(mq.sat,scope = formula(mq.sat)
+                 , direction="backward", k=log(length(reg.data$bwt)), trace=FALSE)
+@
+
+In entrambi i casi, vengono trovati gli stessi modelli individuati dal metodo Forward.
+<<include=FALSE>>=
+#both_aic <- step(mq0,scope = formula(mq), direction="both", k=2)
+
+#both_bic <- step(mq0,scope = formula(mq), direction="both"
+#                 , k=log(length(reg.data$bwt)))
+@
+
+\subsection{Modelli di regressione logistica}
+Troviamo adesso un modello di regressione logistica per la variabile low, utilizzando le stesse variabili utilizzate nella sezione precedente ed escludendo dal dataset la variabile bwt.
+
+<<echo=TRUE,results='hide'>>=
+class.data = birthwt[c(1,2,3,4,5,6,7,8,9)]
+
+cq0 <- glm(unclass(low) ~ 1
+           ,data=class.data)
+cq.sat <- glm (unclass(low) ~ age+lwt+race+smoke+ptl.f+ht+ui+ftv
+               ,data=class.data)
+@
+
+\subsubsection{Metodo Forward}
+Partendo dal modello con la sola intercetta, si effettua una procedura stepwise in avanti
+
+<<echo=TRUE,results='hide'>>=
+class_forw_aic <- step(cq0,scope = formula(cq.sat)
+                       , direction="forward", k=2)
+class_forw_bic <- step(cq0,scope = formula(cq.sat)
+                       , direction="forward", k=log(length(class.data$low)))
+@
+
+Il criterio AIC termina con il modello 
+$$\text{low} \sim \text{ptl.f + ht + lwt + ui + race + smoke}$$
+
+Questo modello è molto simile a quello scelto in \ref{sec:logistica}, tuttavia in questo caso viene inclusa anche la variabile ui che era invece stata scartata durante l'analisi.
+
+Mentre il criterio BIC termina con il modello
+$$\text{low} \sim \text{ptl.f}$$
+In \ref{sec:logistica} era stato notato che la variabile ptl fosse particolarmente significativa.
+Tuttavia, era anche dimostrato che un modello con quest'unica variabile binaria avesse un basso indice pseudo-$R^2$,e che non fosse un modello annidato rispetto al modello completo.
+
+\subsubsection{Metodo backward}
+
+<<echo=TRUE,results='hide'>>=
+class_back_aic <- step(cq.sat,scope = formula(cq.sat)
+                       , direction="backward", k=2)
+class_back_bic <- step(cq.sat,scope = formula(cq.sat)
+                       , direction="backward", k=log(length(reg.data$bwt)))
+@
+
+Il criterio AIC termina con lo stesso modello visto nella direzione forward.\\
+Il criterio BIC termina invece con un modello diverso:
+$$\text{low} \sim \text{lwt + ptl.f + ht}$$
+Viene riproposto un modello già trovato in \ref{sec:logistica}. Anche questo modello non era risultato annidato per il test del rapporto di verosimiglianza, ed era stato preferito un modello più complesso.
+
+<<include=FALSE>>=
+#class_both_aic <- step(cq0,scope = formula(cq.sat), direction="both", k=2)
+#class_both_bic <- step(cq0,scope = formula(cq.sat), direction="both"
+#                 , k=log(length(reg.data$bwt)))
+@
+
+\section{Modelli grafici}
+
+Utilizzando i modelli grafici è possibile valutare l'indipendenza condizionata tra le variabili e fornire una rappresentazione efficace del modello statistico.
+I modelli grafici verranno utilizzati per trovare le dipendenze tra la variabile low (bambino sottopeso) e le restanti variabili.
+Per fare questo verranno utilizzati modelli grafici per variabili categoriche.
+
+\subsection{Undirected Graphs}
+
+Per trovare le relazioni di indipendenza condizionata tra le variabili (categoriche) e la variabile obiettivo low, sono state sfruttate le seguenti variabili dicotomizzate
+\begin{itemize}
+\item{age}, dicotomizzata in Young (Età compresa tra 14 e 23 anni), Adult (Età compresa tra 24 e 35 anni) e Over 35.
+\item {ptl}, dicotomizzata in Yes (La madre ha avuto precedenti parti prematuri) e No altrimenti.
+\item {ftv}, dicotomizzata in Yes (La madre ha effettuato visite ginecologiche nel primo trimestre) e No altrimenti
+\end{itemize}
+La scelta di dicotomizzare ptl e ftv come variabili binarie e non come variabili ordinali si è rivelata utile alla stabilità del metodo, poichè senza questa dicotomizzazione,i modelli trovati mostravano una completa indipendenza tra le variabili esplicative e la variabile low.
+Era stato notato in precedenza come la variabile ptl fosse maggiormente significativa se dicotomizzata in variabile binaria.
+
+Non effettuando ipotesi a priori sulla struttura del grafo, è possibile far apprendere la struttura del grafo dai dati attraverso una procedura iterativa.
+E' possibile sfruttare i criteri AIC e BIC visti precedentemente per la penalizzazione della verosimiglianza.\\
+Il modello calcolato con BIC è il seguente
+
+<<include=FALSE>>=
+require(gRbase)
+require(gRain)
+require(gRim)
+require(RBGL)
+@
+
+<<echo=FALSE,fig=TRUE,results='hide'>>=
+par(mfrow=c(1,1))
+data = birthwt[c(1,4,5,13,7,8,9,11,12)]
+sat.birthwt <- dmod(~.^., data=data)
+ind.birthwt <- dmod(~.^1, data=data)
+m.birthwt.2 <- stepwise(sat.birthwt, k=log(nrow(data))
+                        ,direction="backward")#BIC
+plot(m.birthwt.2)
+
+@
+
+Questo modello mostra una completa indipendenza delle variabili ftv, age, lwt e ht.
+E' possibile verificare l'ipotesi di indipendenza marginale di tutte le variabili dalla variabile obiettivo,low attraverso dei test di ipotesi
+
+<<echo=TRUE>>=
+ciTest(data,set=~low + ht)
+ciTest(data,set=~low + age.f)
+ciTest(data,set=~low + lwt.f)
+ciTest(data,set=~low + ftv)
+ciTest(data,set=~low + race)
+
+ciTest(data,set=~low + ui)
+ciTest(data,set=~low + ptl.f)
+ciTest(data,set=~low + smoke)
+@
+
+\begin{itemize}
+\item I test di indipendenza condizionale non forniscono evidenza contro l'ipotesi nulla di indipendenza marginale di race, age, lwt e ftv da low. Possiamo notare non sia marginalmente indipendente da low.
+\item I test di indipendenza condizionale forniscono evidenza contro l'ipotesi nulla di indipendenza marginale di ui,smoke,ht e ptl da low, a conferma dei collegamenti presenti nel grafo
+\item La variabile ht è completamente indipendente nel grafo, ma tale ipotesi non è confermata dal test.\\ Notiamo tuttavia che il $p$-value è molto vicino alla soglia di significatività $\alpha=0.05$
+\item Il modello di regressione logistica e $\text{low} \sim \text{ht + ptl + lwt + smoke + race}$ includeva le variabili ht e lwt, che in questo caso risultano marginalmente indipendenti da low.
+\\Tuttavia viene confermata la forte relazione tra ptl e la variabile obiettivo low e viene spiegato il motivo della selezione di modelli con solamente la variabile ptl, poichè è l'unica che condiziona low.
+\end{itemize}
+
+Questa struttura inoltre fa sì che race sia condizionalmente indipendente da low dato smoke e ptl, e smoke e ui siano condizionalmente indipendenti da low dato ptl.
+<<>>=
+low.ug <- ug(~smoke*race + ptl.f*smoke + ui*ptl.f + low*ptl.f)
+separates("race","low",c("ptl.f","smoke"),low.ug)
+separates("smoke","low",c("ptl.f"),low.ug)
+separates("ui","low",c("ptl.f"),low.ug)
+@
+
+Si valuta inoltre l'ipotesi di indipendenza condizionale di smoke e ui: 
+
+<<>>=
+ciTest(data,set=~low + ui +ptl.f)
+ciTest(data,set=~low + smoke +ptl.f)
+ciTest(data,set=~low + race +  smoke + ptl.f)
+@
+
+I test non forniscono evidenza contro le ipotesi di indipendenza.
+
+E' possibile ripetere l'analisi con una procedura forward, partendo dal modello di completa indipendenza ed aggiungendo nuovi archi in modo iterativo.\\
+Utilizzando il criterio BIC si ottiene lo stesso modello visto precedentemente, mentre con il criterio AIC si ottiene il seguente modello
+
+<<fig=TRUE,echo=FALSE>>=
+m.birthwt.6 <- stepwise(ind.birthwt, k=2,type="unrestricted"
+                        , direction="forward",details=0)
+plot(m.birthwt.6)
+@
+
+\begin{itemize}
+\item low è condizionalmente indipendente dal peso della madre date le restanti variabili
+\item low è condizionalmente indipendente dall'irritabilità uterina date le restanti variabili
+\item Il numero di visite dal ginecologo effettuate nel primo trimestre e l'età (dicotomizzata) risultano marginalmente indipendenti
+\end{itemize}
+
+\subsection{Directed Acyclic Graphs}
+Per studiare la propagazione delle probabilità condizionali lungo il grafo e capire come alcune evidenze modificano la probabilità della variabile obiettivo low,
+è possibile utilizzare un modello grafico basato su un DAG, ovvero una rete Bayesiana.
+\\Come effettuato in precedenza, la struttura del grafo potrà essere appresa dai dati attraverso un algoritmo hill-climbing.
+
+<<include=FALSE>>=
+library(bnlearn)
+library(igraph)
+require(ggm)
+
+d.separates <- function(a,b,c,dag){
+  separates(a,b,c, gRbase::moralize(ancestralGraph(union(union(a,b),c),dag)))
+}
+@
+
+Con un approccio "Naive", potremmo pensare di non impostare nesssun vincolo sugli archi e utilizzando il criterio AIC per la penalizzazione otterremmo il seguente modello
+
+<<fig=TRUE,echo=FALSE>>=
+
+
+#dag0 <- dag(~low,smoke*low)
+
+birthwt.bn <- hc(data, score = "aic")
+plot(as(amat(birthwt.bn), "graphNEL"))
+#smooth=0.1)
+#summary(dagchest)
+@
+
+Tuttavia, è possibile notare che in questo modello si afferma che low determini l'etnia delle madri e le abitudini sul fumo.
+Non è possibile accettare una affermazione di questo tipo, pertanto è possibile vietare alcuni archi, in base all'ordine temporale che è necessario assumere sulle variabili.
+\\Le variabili verranno suddivise nei seguenti gruppi
+
+\begin{enumerate}
+\item{background}: race,age,ftv,lwt
+\item{fattori}: smoke,ht,ui,ptl
+\item{obiettivo}:low
+\end{enumerate}
+
+Non saranno permessi archi dal gruppo 2 verso il gruppo 1 e dal gruppo 3 verso 2 e 1.
+Lanciando nuovamente la procedura di apprendimento del grafo dai dati, si ottiene il seguente DAG
+
+<<fig=TRUE,echo=TRUE>>=
+block <- c(3,1,2,2,2,2,1,1,1)
+blM <- matrix(0,nrow=9,ncol=9)
+rownames(blM) <- colnames(blM) <- names(data)
+for (b in 2:3) blM[block==b,block<b] <- 1
+
+blackL <- data.frame(get.edgelist(as(blM,"igraph")))
+names(blackL) <- c("from", "to")
+
+birthwt.bn1 <- hc(data,blacklist=blackL,score="aic")
+plot(as(amat(birthwt.bn1),"graphNEL"))
+@
+
+Questo modello rispetta l'ordine temporale che è stato supposto, fornendo una rappresentazione efficace delle indipendenze condizionali.
+
+<<>>=
+dSep(amat(birthwt.bn1),"ftv","low",NULL)
+dSep(amat(birthwt.bn1),"age.f","low",NULL)
+
+dSep(amat(birthwt.bn1),"ftv","low",c("ptl.f","ui"))
+dSep(amat(birthwt.bn1),"age.f","low",c("ptl.f","smoke","ui"))
+@
+
+Con l'obiettivo di ottenere un modello più semplice su cui fare inferenza, viene ripetuto lo studio utilizzando il criterio di selezione BIC
+
+<<fig=TRUE,echo=TRUE>>=
+birthwt.bn2 <- hc(data,blacklist=blackL,score="bic")
+#plot(as(amat(birthwt.bn2),"graphNEL"))
+low.dag <- dag(~smoke*race + ptl.f*smoke + ui*ptl.f + low*ptl.f)
+plot(low.dag)
+@
+
+Questo modello riprende la struttura degli archi vista nel modello non orientato ed è in linea con gli studi precedenti sull'indipendenza marginale delle variabili.
+\\Utilizzando grain è possibile effettuare delle query in modo da ottenere la probabilità condizionata dall'evidenza di alcune variabili esplicative
+
+\begin{itemize}
+\item Probabilità marginale di avere un bambino sottopeso
+<<echo=FALSE>>=
+lowmod1 <- compile(grain(low.dag,data=data))
+querygrain(lowmod1,nodes="low",type="marginal")
+@
+
+\item Probabilità condizionale di avere avere un bambino sottopeso dati precedenti parti prematuri
+<<echo=FALSE>>=
+querygrain(lowmod1,nodes=c("low","ptl.f"),type="conditional")
+@
+
+\item Probabilità condizionale di avere un bambino sottopeso, date le abitudini di fumo
+<<echo=FALSE>>=
+querygrain(lowmod1,nodes=c("low","smoke"),type="conditional")
+@
+
+\item Probabilità condizionale di avere un bambino sottopeso, data l'etnia della madre
+<<echo=FALSE>>=
+querygrain(lowmod1,nodes=c("low","race"),type="conditional")
+@
+Possiamo notare come le probabilità siano estremamente simili tra loro e pressochè identiche alla probabilità marginale di low.
+
+\item Probabilità condizionale di avere un bambino sottopeso, dato il fumo e la presenza di irritabilità uterina
+<<echo=FALSE>>=
+querygrain(lowmod1,nodes=c("low","smoke","ui"),type="conditional")
+@
+
+\end{itemize}
+
+Infine, è possibile provare a prevedere quali bambini saranno sottopeso sfruttando la rete appresa.
+I dati verranno divisi effettuando un campionamento casuale dai 189 campioni, ed utilizzandone il 75\% per l'addestramento e il 25\% per la validazione,
+quindi il modello verrà riaddestrato solamente sul dataset di addestramento e valutato sul dataset di validazione.
+
+Verrà quindi valutata la differenza tra il numero di casi predetti dal modello e il valore effettivo di low
+
+<<>>=
+training_size= 0.75
+training_rows <- sample(seq_len(nrow(data))
+                        , size = floor(training_size * nrow(data)))
+
+train <-data[training_rows,]
+val <-data[-training_rows,]
+@
+
+<<>>=
+lowmod2 <- compile(grain(low.dag,data=train))
+
+pred <- data.frame(predict(lowmod2,resp="low",newdata=val
+                           ,type="class"))
+
+table(val$low)
+table(val$low)/sum(table(val$low))
+
+table(pred$low)
+
+tt <- table(val$low,pred$low)
+tt
+
+sweep(tt,1,apply(tt,1,sum),FUN="/")
+@
+
+Il modello ha una performance mediocre: circa il 40\% dei bambini sottopeso sono stati classificati correttamente.
+E' possibile ripetere la procedura sfruttando il DAG appreso con il criterio AIC. 
+\\Per evitare casi nei quali non siano presenti osservazioni, è stato introdotto un fattore di smoothing pari a 0.1
+
+<<>>=
+low.dag2 <- dag(~smoke*age.f + ptl.f*smoke + ui*ptl.f + low*ptl.f + ptl.f*ftv +ht*ui + ui*lwt.f + lwt.f*race +smoke*race + low*ht)
+
+lowmod3 <- compile(grain(low.dag2,data=train,smooth=0.1))
+
+pred2 <- data.frame(predict(lowmod3,resp="low",newdata=val,type="class"))
+
+table(pred2$low)
+
+tt2 <- table(val$low,pred2$low)
+tt2
+
+sweep(tt2,1,apply(tt2,1,sum),FUN="/")
+@
+
+In questo caso le performance sono peggiori, quindi è preferibile il modello selezionato attraverso il criterio BIC.
+
+\section{Conclusioni}
+
+\begin{itemize}
+\item Il numero di visite effettuate dal ginecologo durante il primo trimestre e l'età delle madri non hanno un effetto significativo sul peso dei neonati
+\item Una madre che ha avuto precedenti parti prematuri ha una maggiore probabilità di avere un bambino 
+\item Un modello di regressione lineare $\text{bwt} \sim \text{ race + smoke + ht + ui + lwt}$ si adatta sufficientemente bene ai dati, pur mostrando un basso indice $R^2$.
+\item Un possibile modello per la classificazione dei bambini sottopeso è il modello di regressione logistica $\text{low} \sim \text{ht + ptl + lwt + smoke + race}$, ottenuto come miglior compromesso tra complessità e correttezza del modello.
+\item La rete bayesiana scelta ha confermato la relazione tra il numero di parti prematuri e la probabilità di avere un bambino sottopeso. Il peso della madre e la familiarità con l'ipertensione non compaiono nel modello più semplice, ma ottengono prestazioni comparabili ad un modello più complesso che include tutte le variabili.
+\end{itemize}
+
+\end{document}

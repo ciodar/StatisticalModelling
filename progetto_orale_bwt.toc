@@ -1,0 +1,36 @@
+\contentsline {section}{\numberline {1}Introduzione}{3}{}%
+\contentsline {section}{\numberline {2}Analisi esplorativa}{3}{}%
+\contentsline {subsection}{\numberline {2.1}Variabili continue}{4}{}%
+\contentsline {subsection}{\numberline {2.2}Variabili categoriche}{6}{}%
+\contentsline {subsection}{\numberline {2.3}Variabili discrete}{7}{}%
+\contentsline {subsection}{\numberline {2.4}Analisi delle correlazioni}{9}{}%
+\contentsline {subsection}{\numberline {2.5}Considerazioni sulle variabili}{11}{}%
+\contentsline {section}{\numberline {3}Modello lineare di regressione}{12}{}%
+\contentsline {subsection}{\numberline {3.1}Modello di regressione semplice}{12}{}%
+\contentsline {subparagraph}{Commenti}{13}{}%
+\contentsline {subsection}{\numberline {3.2}Modello di regressione multipla}{13}{}%
+\contentsline {subparagraph}{Commenti}{14}{}%
+\contentsline {subparagraph}{Multicollinearità}{15}{}%
+\contentsline {paragraph}{Modello ridotto}{15}{}%
+\contentsline {subparagraph}{Commenti}{16}{}%
+\contentsline {subparagraph}{Test del rapporto di verosimiglianza}{17}{}%
+\contentsline {subparagraph}{Analisi dei residui}{17}{}%
+\contentsline {subsection}{\numberline {3.3}Modelli con interazioni}{19}{}%
+\contentsline {paragraph}{Commenti}{21}{}%
+\contentsline {section}{\numberline {4}Modello di regressione logistica}{22}{}%
+\contentsline {paragraph}{Commenti}{25}{}%
+\contentsline {paragraph}{Commenti}{29}{}%
+\contentsline {paragraph}{Stima della probabilità}{30}{}%
+\contentsline {paragraph}{Odds}{31}{}%
+\contentsline {subsection}{\numberline {4.1}Modelli con interazioni}{32}{}%
+\contentsline {section}{\numberline {5}Selezione del modello}{35}{}%
+\contentsline {subsection}{\numberline {5.1}Modelli di regressione lineare}{35}{}%
+\contentsline {subsubsection}{\numberline {5.1.1}Metodo Forward}{35}{}%
+\contentsline {subsubsection}{\numberline {5.1.2}Metodo Backward}{36}{}%
+\contentsline {subsection}{\numberline {5.2}Modelli di regressione logistica}{36}{}%
+\contentsline {subsubsection}{\numberline {5.2.1}Metodo Forward}{36}{}%
+\contentsline {subsubsection}{\numberline {5.2.2}Metodo backward}{37}{}%
+\contentsline {section}{\numberline {6}Modelli grafici}{37}{}%
+\contentsline {subsection}{\numberline {6.1}Undirected Graphs}{38}{}%
+\contentsline {subsection}{\numberline {6.2}Directed Acyclic Graphs}{42}{}%
+\contentsline {section}{\numberline {7}Conclusioni}{49}{}%
